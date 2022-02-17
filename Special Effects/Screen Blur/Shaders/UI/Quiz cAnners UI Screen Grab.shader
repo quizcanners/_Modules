@@ -8,18 +8,18 @@ Shader "Quiz cAnners/UI/ScreenGrab/Display"
         [Toggle(TINT_AS_OVERLAY)] _TintAsOverlay("Use Tint As Overlay", Float) = 0
 
         [Toggle(USE_MOUSE_POS)] _UseMousePosition("Use Mouse Position", Float) = 0
-        [Toggle(ALPHA_MASK)] _UseMask("Use Alpha Mask", Float) = 0
+
+        [KeywordEnum(NONE, ALPHA_ONLY, MULTIPLY, OVERLAY )] _MASK("Sprite Role", Float) = 0
+
         [Toggle(FADE_TO_CENTER)] _fadeToCenter("Fade from edges to center", Float) = 0
         [KeywordEnum(SCREEN_SHOT, BLURRED_SCREEN, BACKGROUND)] _TARGET("Screen Grab Data", Float) = 0
            
-
         _StencilComp("Stencil Comparison", Float) = 8
         _Stencil("Stencil ID", Float) = 0
         _StencilOp("Stencil Operation", Float) = 0
         _StencilWriteMask("Stencil Write Mask", Float) = 255
         _StencilReadMask("Stencil Read Mask", Float) = 255
         _ColorMask("Color Mask", Float) = 15
-
     }
 
     SubShader
@@ -42,7 +42,6 @@ Shader "Quiz cAnners/UI/ScreenGrab/Display"
             WriteMask[_StencilWriteMask]
         }
      
-
         Cull Off
         Lighting Off
         ZWrite Off
@@ -56,13 +55,13 @@ Shader "Quiz cAnners/UI/ScreenGrab/Display"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature_local ___ ALPHA_MASK
+            //#pragma shader_feature_local ___ ALPHA_MASK
+            #pragma shader_feature_local _MASK_NONE  _MASK_ALPHA_ONLY   _MASK_MULTIPLY   _MASK_OVERLAY
             #pragma shader_feature_local _TARGET_SCREEN_SHOT  _TARGET_BLURRED_SCREEN   _TARGET_BACKGROUND
             #pragma shader_feature_local __ USE_MOUSE_POS
             #pragma shader_feature_local __ FADE_TO_CENTER
             #pragma shader_feature_local __ TINT_AS_OVERLAY
         
-
             #include "UnityCG.cginc"
             #include "UnityUI.cginc"
 
@@ -91,7 +90,7 @@ Shader "Quiz cAnners/UI/ScreenGrab/Display"
             #elif _TARGET_BLURRED_SCREEN
                 sampler2D _qcPp_Global_Screen_Effect;
             #elif _TARGET_BACKGROUND
-            sampler2D _qcPp_Global_Screen_Background;
+                sampler2D _qcPp_Global_Screen_Background;
             #endif
 
             fixed4 _Color;
@@ -160,9 +159,16 @@ Shader "Quiz cAnners/UI/ScreenGrab/Display"
                     color *= IN.color;
                 #endif
 
-                #if ALPHA_MASK
+                #if _MASK_ALPHA_ONLY 
+                    color.a *= tex2D(_MainTex, IN.texcoord).a;
+                #elif _MASK_MULTIPLY 
                     color *= tex2D(_MainTex, IN.texcoord);
+                #elif _MASK_OVERLAY
+                    float4 tex = tex2D(_MainTex, IN.texcoord);
+                    color.rgb = lerp(color.rgb, tex.rgb, tex.a);
                 #endif
+                    
+         
        
                 #if TINT_AS_OVERLAY
                     color.rgb = lerp(color.rgb, _Color.rgb, _Color.a); // +*(1 - _Color.a);

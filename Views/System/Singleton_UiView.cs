@@ -133,7 +133,7 @@ namespace QuizCanners.IsItGame.UI
 
                     CheckStateMachine();
 
-                    if (_targetView != _currentView) 
+                    if (_targetView != _currentView)
                     {
                         _screenChangeState = ScreenChangeState.RequestedScreenShot;
                         _currentTransitionType = _targetTransitionType;
@@ -142,14 +142,14 @@ namespace QuizCanners.IsItGame.UI
 
                         processCommand = _currentTransitionType switch
                         {
-                            UiTransitionType.WipeAway =>    Singleton_ScreenBlur.ProcessCommand.WashAway,
-                            UiTransitionType.ZoomOut =>     Singleton_ScreenBlur.ProcessCommand.ZoomOut,
-                            _ =>                            Singleton_ScreenBlur.ProcessCommand.Blur,
+                            UiTransitionType.WipeAway => Singleton_ScreenBlur.ProcessCommand.WashAway,
+                            UiTransitionType.ZoomOut => Singleton_ScreenBlur.ProcessCommand.ZoomOut,
+                            _ => Singleton_ScreenBlur.ProcessCommand.Blur,
                         };
 
                         TransitionGraphic.SetObscure(
-                            onObscured:() => _screenChangeState = ScreenChangeState.ReadyToChangeView,
-                            processCommand, 
+                            onObscured: () => _screenChangeState = ScreenChangeState.ReadyToChangeView,
+                            processCommand,
                             updateBackground: _updateBackgroundRequested.TryUseRequest());
                     }
                     break;
@@ -159,9 +159,9 @@ namespace QuizCanners.IsItGame.UI
                     _screenChangeState = ScreenChangeState.LoadingNextView;
                     _currentView = _targetView;
 
-                    DestroyInstance(); 
+                    DestroyInstance();
 
-                    if (_currentView == Game.Enums.View.None) 
+                    if (_currentView == Game.Enums.View.None)
                     {
                         _screenChangeState = ScreenChangeState.ViewIsSetUp;
                         break;
@@ -172,10 +172,10 @@ namespace QuizCanners.IsItGame.UI
                         if (c.ViewEnum == _currentView && c.Instance)
                             cached = c.Instance;
 
-                    if (cached) 
+                    if (cached)
                     {
                         FinalizeSetup(cached, InstanceSource.Cached);
-                    } 
+                    }
                     else
                     {
                         var reff = _viewsInAssets.GetReference(_currentView);
@@ -220,6 +220,13 @@ namespace QuizCanners.IsItGame.UI
 
                 case ScreenChangeState.LoadingNextView: break;
                 case ScreenChangeState.ViewIsSetUp:
+
+                    UiObscureScreen obs = UiObscureScreen.Off;
+                    if (Game.State.TryChangeFallback(ref obs, fallbackValue: UiObscureScreen.Off)) 
+                    {
+                        if (obs == UiObscureScreen.On)
+                            return;
+                    }
 
                     _timer.Dispose();
 
@@ -381,6 +388,8 @@ namespace QuizCanners.IsItGame.UI
     public enum UiTransitionType { Blur, CrossFade, Hexagonal, WipeAway, ZoomOut }
 
     public enum UiRaycastBlock { Undecided, Off, On }
+
+    public enum UiObscureScreen { Off, On }
 
     public static class UiViewsExtensions 
     {

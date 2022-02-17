@@ -46,6 +46,23 @@ namespace QuizCanners.IsItGame.StateMachine
                 return vals;
             }
 
+            public bool TryChangeFallback<V>(ref V value)
+            {
+                if (!TryGetFallbackData(out V newValue))
+                {
+                    return false;
+                }
+
+                if (value != null && value.Equals(newValue))
+                {
+                    return false;
+                }
+
+                value = newValue;
+
+                return true;
+            }
+
             public bool TryChangeFallback<V>(ref V value, V fallbackValue)
             {
                 if (!TryGetFallbackData(out V newValue))

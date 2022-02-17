@@ -42,7 +42,15 @@ namespace QuizCanners.IsItGame
         public void Play(IigEnum_Music music, bool skipTransition = false)
         {
             currentlyPlaying = music;
-            Play(Music.Get(music), skipTransition: skipTransition);
+
+            SO_Music_ClipData clip = Music.Get(music);
+            if (clip == null) 
+            {
+                Debug.LogWarning("No Music Clip Data for {0}".F(music));
+            }
+
+
+            Play(clip, skipTransition: skipTransition);
         }
 
         private void Play(SO_Music_ClipData data, bool skipTransition = false) 
@@ -53,7 +61,7 @@ namespace QuizCanners.IsItGame
 
             if (data == null) 
             {
-                Debug.LogError("Clip Data is null");
+                Debug.LogWarning("Clip Data is null");
                 return;
             }
 
