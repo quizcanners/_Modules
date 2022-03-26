@@ -2,6 +2,7 @@ Shader "Quiz cAnners/Effects/Unstrtched Circles" {
 	Properties{
 		_MainTex("Albedo (RGB)", 2D) = "white" {}
 		[Toggle(_DEBUG)] debugOn("Debug", Float) = 0
+		[Toggle(_BILLBOARD)] billboardValue("Bill Board", Float) = 0
 	}
 
 		SubShader{
@@ -29,6 +30,7 @@ Shader "Quiz cAnners/Effects/Unstrtched Circles" {
 				#pragma multi_compile_instancing
 				#pragma multi_compile_fwdbase // useful to have shadows 
 				#pragma shader_feature_local ____ _DEBUG 
+				#pragma shader_feature_local ___ _BILLBOARD
 
 				#pragma target 3.0
 
@@ -50,8 +52,18 @@ Shader "Quiz cAnners/Effects/Unstrtched Circles" {
 					v2f o;
 					UNITY_SETUP_INSTANCE_ID(v);
 
-					o.normal.xyz = UnityObjectToWorldNormal(v.normal);
+#if _BILLBOARD
+					// billboard mesh towards camera
+					float3 vpos = mul((float3x3)unity_ObjectToWorld, v.vertex.xyz);
+					float4 worldCoord = float4(unity_ObjectToWorld._m03, unity_ObjectToWorld._m13, unity_ObjectToWorld._m23, 1);
+					float4 viewPos = mul(UNITY_MATRIX_V, worldCoord) + float4(vpos, 0);
+					o.pos = mul(UNITY_MATRIX_P, viewPos);
+#else
 					o.pos = UnityObjectToClipPos(v.vertex);
+#endif
+
+					o.normal.xyz = UnityObjectToWorldNormal(v.normal);
+					
 					o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 					o.viewDir.xyz = WorldSpaceViewDir(v.vertex);
 					o.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
