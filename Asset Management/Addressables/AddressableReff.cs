@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QuizCanners.Inspect;
+using System;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -7,9 +8,8 @@ using Object = UnityEngine.Object;
 
 namespace QuizCanners.IsItGame
 {
-    public abstract class AddressableBase 
+    public abstract class AddressableBase : IPEGI, IDisposable
     {
-        public string Name;
         [SerializeField] public Object DirectReference;
 
         protected abstract AssetReference GetReference();
@@ -19,6 +19,7 @@ namespace QuizCanners.IsItGame
         protected abstract void StartLoad();
 
         protected Object Result => DirectReference ? DirectReference : (Object)(GetHandle().IsValid() ? GetHandle().Result : null);
+        
         public void Release()
         {
             var h = GetHandle();
@@ -72,6 +73,16 @@ namespace QuizCanners.IsItGame
             }
 
             await GetHandle().Task;
+        }
+
+        public virtual void Inspect()
+        {
+            "Start".PegiLabel().Click(StartLoad).Nl();
+        }
+
+        public void Dispose()
+        {
+           Release();
         }
     }
 

@@ -324,7 +324,7 @@ namespace QuizCanners.SpecialEffects
 
                         if (feedPositionData)
                         {
-                            "Position: ".PegiLabel(60).EditEnum(ref _positionDataType);
+                            "Position: ".PegiLabel(60).Edit_Enum(ref _positionDataType);
 
                             FullWindow.DocumentationClickOpen("Shaders that use position data often don't look right in the scene view.", "Camera dependancy warning");
 

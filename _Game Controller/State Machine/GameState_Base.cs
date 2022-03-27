@@ -7,14 +7,14 @@ namespace QuizCanners.IsItGame.StateMachine
     {
         public abstract class Base : IsItGameClassBase, IPEGI, IPEGI_ListInspect
         {
-            public bool IsCurrent => Game.State.IsCurrent(this);
+            public bool IsCurrent => Machine.IsCurrent(this);
             protected void SetNextState<T>() where T : Base, new()
             {
                 var myType = GetType();
-                Game.State.ReturnToState(myType);
+                Machine.ReturnToState(myType);
                 if (typeof(T) != myType)
                 {
-                    Game.State.Enter<T>();
+                    Machine.Enter<T>();
                 }
             }
 
@@ -24,7 +24,7 @@ namespace QuizCanners.IsItGame.StateMachine
             internal virtual void Update() { }
             internal virtual void LateUpdate() { }
             internal virtual void UpdateIfCurrent() { }
-            internal void Exit() => Game.State.Exit(this);
+            internal void Exit() => Machine.Exit(this);
 
             #region Inspector
             public void Inspect()

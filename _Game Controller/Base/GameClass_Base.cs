@@ -5,12 +5,10 @@ using UnityEngine;
 
 namespace QuizCanners.IsItGame
 {
-
     public partial class Game 
     {
         private static Singleton_GameController Mgmt => Singleton.Get<Singleton_GameController>();
         internal static SO_PersistentGameData Persistent => Mgmt.PersistentProgressData;
-        internal static GameState.MachineManager State => Mgmt.StateMachine;
     }
 
     public class IsItGameClassBase 
@@ -42,13 +40,11 @@ namespace QuizCanners.IsItGame
 
     public abstract class IsItGameServiceBase : Singleton.BehaniourBase
     {
-        protected Game Game;
-
         public int Version { get; private set; }
         protected void SetDirty() => Version++;
 
         protected Gate.Integer _checkedStateVersion = new();
-        protected bool TryEnterIfStateChanged() => Application.isPlaying && _checkedStateVersion.TryChange(Game.State.Version);
+        protected bool TryEnterIfStateChanged() => Application.isPlaying && _checkedStateVersion.TryChange(GameState.Machine.Version);
 
         public override void Inspect()
         {
@@ -68,5 +64,4 @@ namespace QuizCanners.IsItGame
         }
 
     }
-
 }

@@ -8,11 +8,8 @@ namespace QuizCanners.SpecialEffects
     {
         private Vector2 tilt;
 
-        private bool posSet;
 
-        private Vector3 previousPos;
-
-        public void UpdateTilt(RectTransform rt, Camera cam, bool dontTilt = false, float speed = 30, float mouseEffectRadius = 0.75f)
+        public void UpdateTilt(RectTransform rt, Camera cam, bool dontTilt = false, float speed = 100, float mouseEffectRadius = 0.75f, float maxTilt = 25)
         {
             Vector2 targetTilt;
 
@@ -32,33 +29,15 @@ namespace QuizCanners.SpecialEffects
 
                 targetTilt.y = -targetTilt.y;
 
-                targetTilt *= QcMath.SmoothStep(0, mouseEffectRadius, distance) * QcMath.SmoothStep(mouseEffectRadius, 0, distance) * 8;
-            }
-
-            if (!posSet)
-            {
-                previousPos = rectPos;
-                posSet = true;
-            }
-            else
-            {
-                Vector2 posDiff = rectPos - previousPos;
-
-                Vector2 newPos = posDiff.YX() * 50 / mouseEffectRadius;
-
-                newPos.y = -newPos.y;
-
-                previousPos = rectPos;
-
-                targetTilt += newPos;
+                targetTilt *= QcMath.SmoothStep(0, mouseEffectRadius, distance) * QcMath.SmoothStep(mouseEffectRadius, 0, distance) * maxTilt;
             }
 
             targetTilt *= new Vector2(Screen.width, Screen.height) / mouseEffectRadius;
 
             if (LerpUtils.IsLerpingBySpeed(ref tilt, targetTilt, speed: speed))
             {
-                if (tilt.magnitude > 5)
-                    tilt = tilt.normalized * 5;
+                if (tilt.magnitude > maxTilt)
+                    tilt = tilt.normalized * maxTilt;
 
                 rt.rotation = Quaternion.Euler(tilt.ToVector3());
             }

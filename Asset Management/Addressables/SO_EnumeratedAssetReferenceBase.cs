@@ -44,14 +44,14 @@ namespace QuizCanners.IsItGame
             {
                 string name = Enum.ToObject(inspectedEnum, ind).ToString();
 
-                if (Name.IsNullOrEmpty())
+               /* if (Name.IsNullOrEmpty())
                 {
                     "Set name".PegiLabel().Click(() => Name = name);
                 }
                 else if (!name.Equals(Name))
                     Icon.Refresh.Click(() => Name = name, "Refresh Name");
                    
-                Name.PegiLabel(90).Write();
+                Name.PegiLabel(90).Write();*/
 
                 if (DirectReference && Reference.AssetGUID.IsNullOrEmpty() == false && Icon.Clear.Click())
                     Reference = null;

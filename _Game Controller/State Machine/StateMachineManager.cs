@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static QuizCanners.IsItGame.Game.Enums;
 
 namespace QuizCanners.IsItGame.StateMachine
 {
@@ -12,15 +11,15 @@ namespace QuizCanners.IsItGame.StateMachine
     public partial class GameState
     {
 
-        public class MachineManager : IPEGI
+        public static class Machine  //: IPEGI
         {
-            public int Version { get; private set; }
+            public static int Version { get; private set; }
 
-            private readonly List<Base> _stateStack = new();
+            private static readonly List<Base> _stateStack = new();
 
-            internal void SetDirty() => Version++;
+            internal static void SetDirty() => Version++;
 
-            public List<V> Get<V>()
+            public static List<V> GetAllAdditive<V>()
             {
                 List<V> vals = new();
 
@@ -46,24 +45,17 @@ namespace QuizCanners.IsItGame.StateMachine
                 return vals;
             }
 
-            public bool TryChangeFallback<V>(ref V value)
+            public static V Get<V>(V defaultValue)
             {
                 if (!TryGetFallbackData(out V newValue))
                 {
-                    return false;
+                    return defaultValue;
                 }
 
-                if (value != null && value.Equals(newValue))
-                {
-                    return false;
-                }
-
-                value = newValue;
-
-                return true;
+                return newValue;
             }
 
-            public bool TryChangeFallback<V>(ref V value, V fallbackValue)
+            public static bool TryChangeFallback<V>(ref V value, V fallbackValue)
             {
                 if (!TryGetFallbackData(out V newValue))
                 {
@@ -80,11 +72,11 @@ namespace QuizCanners.IsItGame.StateMachine
                 return true;
             }
 
-            public bool IsCurrent(Base state) => state == _stateStack.TryGetLast();
+            public static bool IsCurrent(Base state) => state == _stateStack.TryGetLast();
 
-            public void Enter<T>() where T : Base, new() => Enter(new T());
+            public static void Enter<T>() where T : Base, new() => Enter(new T());
 
-            public void Enter(Base state)
+            public static void Enter(Base state)
             {
                 SetDirty();
 
@@ -102,7 +94,7 @@ namespace QuizCanners.IsItGame.StateMachine
                 Current(state => state.OnEnter());
             }
 
-            public void Exit(Type type)
+            public static void Exit(Type type)
             {
                 var index = _stateStack.FindLastIndex(state => state.GetType() == type);
 
@@ -115,7 +107,7 @@ namespace QuizCanners.IsItGame.StateMachine
                 Exit(_stateStack[index]);
             }
 
-            public void Exit(Base closedState)
+            public static void Exit(Base closedState)
             {
                 bool isLast = _stateStack.IndexOf(closedState) == _stateStack.Count - 1;
 
@@ -126,7 +118,7 @@ namespace QuizCanners.IsItGame.StateMachine
                 ExitLast();
             }
 
-            public void ReturnToState(Type type)
+            public static void ReturnToState(Type type)
             {
                 while (_stateStack.Count > 0 && _stateStack.Last().GetType() != type)
                     ExitLast();
@@ -137,7 +129,7 @@ namespace QuizCanners.IsItGame.StateMachine
                 SetDirty();
             }
 
-            private bool TryGetFallbackData<V>(out V result)
+            private static bool TryGetFallbackData<V>(out V result)
             {
                 for (int i = _stateStack.Count - 1; i >= 0; i--)
                 {
@@ -160,7 +152,7 @@ namespace QuizCanners.IsItGame.StateMachine
                 return false;
             }
 
-            private void ExitLast()
+            private static void ExitLast()
             {
                 var closedState = _stateStack.Last();
                 DoInternal(state => state.OnExit(), closedState);
@@ -171,7 +163,7 @@ namespace QuizCanners.IsItGame.StateMachine
                 SetDirty();
             }
 
-            private void Current(Action<Base> action)
+            private static void Current(Action<Base> action)
             {
                 var last = _stateStack.TryGetLast();
                 if (last != null)
@@ -180,7 +172,7 @@ namespace QuizCanners.IsItGame.StateMachine
                 }
             }
 
-            private void Previous(Action<Base> action)
+            private static void Previous(Action<Base> action)
             {
                 var previous = _stateStack.TryGet(_stateStack.Count - 2);
                 if (previous != null)
@@ -189,7 +181,7 @@ namespace QuizCanners.IsItGame.StateMachine
                 }
             }
 
-            private void DoInternal(Action<Base> action, Base state)
+            private static void DoInternal(Action<Base> action, Base state)
             {
                 try
                 {
@@ -203,14 +195,14 @@ namespace QuizCanners.IsItGame.StateMachine
                 SetDirty();
             }
 
-            public void ManagedOnEnable()
+            public static void ManagedOnEnable()
             {
                 if (Application.isPlaying)
                 {
                     Enter<Bootstrap>();
                 }
             }
-            public void ManagedOnDisable()
+            public static void ManagedOnDisable()
             {
                 while (_stateStack.Count > 0)
                 {
@@ -218,7 +210,7 @@ namespace QuizCanners.IsItGame.StateMachine
                 }
             }
 
-            public void ManagedUpdate()
+            public static void ManagedUpdate()
             {
                 ProcessFallbacks(state => state.Update());
 
@@ -228,9 +220,9 @@ namespace QuizCanners.IsItGame.StateMachine
                 }
             }
 
-            public void ManagedLateUpdate() => ProcessFallbacks(state => state.LateUpdate());
+            public static void ManagedLateUpdate() => ProcessFallbacks(state => state.LateUpdate());
 
-            private void ProcessFallbacks(Action<Base> stackOperator)
+            private static void ProcessFallbacks(Action<Base> stackOperator)
             {
                 for (int i = _stateStack.Count - 1; i >= 0; i--)
                 {
@@ -248,11 +240,11 @@ namespace QuizCanners.IsItGame.StateMachine
 
             #region Inspector
 
-            private bool _showTest;
-            private int _inspectedState = -1;
+            private static bool _showTest;
+            private static int _inspectedState = -1;
 
-            private Game.Enums.GameState _debugState = Game.Enums.GameState.Bootstrap;
-            public void Inspect()
+            private static Game.Enums.GameState _debugState = Game.Enums.GameState.Bootstrap;
+            public static void Inspect()
             {
 
                 if ("Version ++ ({0})".F(Version).PegiLabel().Click().Nl())
@@ -286,7 +278,7 @@ namespace QuizCanners.IsItGame.StateMachine
 
                 if (_inspectedState == -1 && "Debug & Test".PegiLabel().IsFoldout(ref _showTest).Nl())
                 {
-                    "Debug State".PegiLabel().EditEnum(ref _debugState);
+                    "Debug State".PegiLabel().Edit_Enum(ref _debugState);
 
                     if (Icon.Play.Click())
                         _debugState.Enter();

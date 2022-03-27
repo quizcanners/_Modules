@@ -43,7 +43,7 @@ namespace QuizCanners.SpecialEffects
                 
                 bool down = Input.GetMouseButton(0);
 
-                if (down || mouseDownStrength > 0)
+                if (down || mouseDownStrength > 0 || !Application.isMobilePlatform)
                 {
                     bool downThisFrame = Input.GetMouseButtonDown(0);
 
@@ -66,7 +66,7 @@ namespace QuizCanners.SpecialEffects
                     if (mouseDownStrength > 0.99f)
                         downClickFullyShown = true;
 
-                    if (down)
+                    if (down || !Application.isMobilePlatform)
                         mouseDownPosition = Input.mousePosition.XY() / new Vector2(Screen.width, Screen.height);
 
                     mousePosition.GlobalValue = mouseDownPosition.ToVector4(mouseDownStrength, ((float)Screen.width) / Screen.height);

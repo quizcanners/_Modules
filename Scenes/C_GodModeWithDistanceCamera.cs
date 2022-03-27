@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace QuizCanners.Utils
 {
-    public class C_GodModeWithDistanceCamera : C_CameraOperatorConfigurable
+    public class C_GodModeWithDistanceCamera : Singleton_CameraOperatorConfigurable
     {
         [SerializeField] private Camera _distanceCamera;
         [SerializeField] private float _distantCameraFarClip;

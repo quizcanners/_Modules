@@ -60,7 +60,6 @@ namespace QuizCanners.IsItGame.NodeNotes
                 }
             }
 
-
             public override void Inspect()
             {
                 base.Inspect();

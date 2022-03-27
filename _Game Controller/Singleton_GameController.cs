@@ -1,4 +1,5 @@
 using QuizCanners.Inspect;
+using QuizCanners.IsItGame.StateMachine;
 using QuizCanners.IsItGame.UI;
 using QuizCanners.Utils;
 using UnityEngine;
@@ -10,31 +11,29 @@ namespace QuizCanners.IsItGame
     {
         public const string PROJECT_NAME = "Is It A Game";
 
-        public StateMachine.GameState.MachineManager StateMachine = new();
-
         public SO_PersistentGameData PersistentProgressData;
 
         void Update()
         {
-            StateMachine.ManagedUpdate();
+            GameState.Machine.ManagedUpdate();
 
             if (Input.GetKey(KeyCode.Escape))
                 Application.Quit();
         }
 
-        void LateUpdate() => StateMachine.ManagedLateUpdate();
+        void LateUpdate() => GameState.Machine.ManagedLateUpdate();
 
         protected override void AfterEnable()
         {
-            StateMachine.ManagedOnEnable();
+            GameState.Machine.ManagedOnEnable();
 
             if (PersistentProgressData)
                 PersistentProgressData.Load();
         }
 
-        protected override void OnBeforeOnDisableOrEnterPlayMode()
+        protected override void OnBeforeOnDisableOrEnterPlayMode(bool afterEnableCalled)
         {
-            StateMachine.ManagedOnDisable();
+            GameState.Machine.ManagedOnDisable();
             if (PersistentProgressData)
                 PersistentProgressData.Save();
         }
@@ -61,7 +60,8 @@ namespace QuizCanners.IsItGame
 
                 "Modules".PegiLabel().IsEntered().Nl().If_Entered(Singleton.Collector.Inspect);  // Independent
 
-                "State Machine".PegiLabel().Enter_Inspect(StateMachine).Nl();  // Game Flow logic.
+                if ("State Machine".PegiLabel().IsEntered().Nl())
+                    GameState.Machine.Inspect(); // Game Flow logic.
 
                 "Persistent Data".PegiLabel().Edit_Enter_Inspect(ref PersistentProgressData).Nl();  // Game Data that changes from run to run
 

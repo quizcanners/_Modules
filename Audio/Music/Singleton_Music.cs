@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using QuizCanners.Utils;
 using QuizCanners.Lerp;
+using QuizCanners.IsItGame.StateMachine;
 
 namespace QuizCanners.IsItGame
 {
@@ -22,13 +23,16 @@ namespace QuizCanners.IsItGame
         [NonSerialized] private bool _activeIsA;
         [NonSerialized] private int _latestRequestVersion;
         [NonSerialized] private bool _applicationPaused;
-        [NonSerialized] private IigEnum_Music currentlyPlaying = IigEnum_Music.None;
-        [NonSerialized] private float _targetVolumeScale = 1;
+        [NonSerialized] private Game.Enums.Music currentlyPlaying = Game.Enums.Music.None;
+        [NonSerialized] private float _targetSongVolumeScale = 1;
 
         private readonly PlayerPrefValue.Bool _musicIsOn = new("WantMusic", defaultValue: true);
         private readonly PlayerPrefValue.Float _musicVolume = new("MusicVolume", defaultValue: 0.5f);
 
         private readonly Dictionary<string, float> _perSongPlaybeckResume = new();
+
+        private AudioSource ActiveSource => _activeIsA ? sourceA : sourceB;
+        private AudioSource FadingSource => _activeIsA ? sourceB : sourceA;
 
         public float Volume
         {
@@ -39,21 +43,21 @@ namespace QuizCanners.IsItGame
                 SetDirty();
             }
         }
-        public void Play(IigEnum_Music music, bool skipTransition = false)
+
+        public void Play(Game.Enums.Music music, bool skipTransition = false)
         {
             currentlyPlaying = music;
 
-            SO_Music_ClipData clip = Music.Get(music);
-            if (clip == null) 
+            if (!Music.TryGet(music, out var clip)) 
             {
                 Debug.LogWarning("No Music Clip Data for {0}".F(music));
             }
 
 
-            Play(clip, skipTransition: skipTransition);
+            Play_Internal(clip, skipTransition: skipTransition);
         }
 
-        private void Play(SO_Music_ClipData data, bool skipTransition = false) 
+        private void Play_Internal(SO_Music_ClipData data, bool skipTransition = false) 
         {
             _latestRequestVersion += 1;
             int thisRequest = _latestRequestVersion;
@@ -72,15 +76,15 @@ namespace QuizCanners.IsItGame
                     return;
                 }
 
-                _targetVolumeScale = data.Volume;
+                _targetSongVolumeScale = data.Volume;
 
                 float startAt = (data.AlwaysStartFromBeginning || !clip) ? 0 : _perSongPlaybeckResume.TryGet(clip.name);
 
-                Play(clip, skipTransition: skipTransition, startAt: startAt);
+                Play_Internal(clip, skipTransition: skipTransition, startAt: startAt);
             }));
         }
 
-        private void Play(AudioClip clip, bool skipTransition = false, float startAt = 0)
+        private void Play_Internal(AudioClip clip, bool skipTransition = false, float startAt = 0)
         {
             _latestRequestVersion += 1;
             _targetClip = clip;
@@ -92,9 +96,6 @@ namespace QuizCanners.IsItGame
                 _transitionProgress = 1;
             }
         }
-
-        public AudioSource ActiveSource => _activeIsA ? sourceA : sourceB;
-        public AudioSource FadingSource => _activeIsA ? sourceB : sourceA;
 
         private void Flip()
         {
@@ -146,12 +147,12 @@ namespace QuizCanners.IsItGame
 
             if (TryEnterIfStateChanged())
             {
-                IigEnum_Music song = currentlyPlaying;
-                if (Game.State.TryChangeFallback(ref song, fallbackValue: IigEnum_Music.None)) 
+                Game.Enums.Music song = currentlyPlaying;
+                if (GameState.Machine.TryChangeFallback(ref song, fallbackValue: Game.Enums.Music.None)) 
                     Play(song);
             }
 
-            float lerpSoundTo = _applicationPaused ? 0 : (_playSilence ? 0 : Volume * _targetVolumeScale);
+            float lerpSoundTo = _applicationPaused ? 0 : (_playSilence ? 0 : Volume * _targetSongVolumeScale);
 
             float volumeChangeSpeed = _applicationPaused ? 2 : 0.5f;
 
@@ -198,21 +199,28 @@ namespace QuizCanners.IsItGame
         }
 
         #region Inspector
-        public override string InspectedCategory => Utils.Singleton.Categories.SCENE_MGMT;
-
-
-        private IigEnum_Music _debugCoreMusic = IigEnum_Music.None;
+        public override string InspectedCategory => Singleton.Categories.SCENE_MGMT;
+        private Game.Enums.Music _debugCoreMusic = Game.Enums.Music.None;
         private int _inspectedStuff = -1;
+
+        public override void InspectInList(ref int edited, int ind)
+        {
+            var s = _musicIsOn.GetValue();
+            pegi.ToggleIcon(ref s).OnChanged(() => _musicIsOn.SetValue(s));
+            base.InspectInList(ref edited, ind);
+
+        }
         public override void Inspect()
         {
             base.Inspect();
 
             if (_inspectedStuff == -1) 
             {
-                if ("Song To Play".PegiLabel().EditEnum(ref _debugCoreMusic) | Icon.Play.Click().Nl())
+                if ("Song To Play".PegiLabel().Edit_Enum(ref _debugCoreMusic) | Icon.Play.Click().Nl())
                     _debugCoreMusic.Play();
 
-                "Volume".PegiLabel(50).Edit(ref _targetVolumeScale, 0, 2).Nl();
+                var v = Volume;
+                "Volume".PegiLabel(50).Edit(ref v, 0, 2).Nl(()=> Volume = v);
 
                 if (!sourceA && !sourceB) 
                 {
@@ -237,9 +245,8 @@ namespace QuizCanners.IsItGame
                 }
             }
 
-            "Music".PegiLabel().Edit_enter_Inspect(ref Music, ref _inspectedStuff, 0).Nl();
+            "Music".PegiLabel().Edit_Enter_Inspect(ref Music, ref _inspectedStuff, 0).Nl();
         }
-
         public override string NeedAttention()
         {
             if (!Music)
@@ -250,18 +257,9 @@ namespace QuizCanners.IsItGame
         #endregion
     }
 
-    public enum IigEnum_Music
-    {
-        None = 0,
-        MainMenu = 1,
-        Loading = 2,
-        Combat = 3,
-        Reward = 4,
-    }
-
     public static class CoreMusicExtension
     {
-        public static void Play(this IigEnum_Music music, bool skipTransition = false) =>
+        public static void Play(this Game.Enums.Music music, bool skipTransition = false) =>
             Singleton.Try<Singleton_Music>(s => s.Play(music, skipTransition: skipTransition));
     }
 

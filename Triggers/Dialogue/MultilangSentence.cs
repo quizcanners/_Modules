@@ -192,7 +192,7 @@ namespace QuizCanners.IsItGame.Triggers.Dialogue
 
         #region Inspector
 
-        public static void LanguageSelector_PEGI() => pegi.EditEnum(ref currentLanguage, 30);
+        public static void LanguageSelector_PEGI() => pegi.Edit_Enum(ref currentLanguage, 30);
         
         public string NeedAttention() {
             if (needsReview)

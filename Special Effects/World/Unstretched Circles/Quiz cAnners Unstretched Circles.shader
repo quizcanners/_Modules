@@ -72,53 +72,24 @@ Shader "Quiz cAnners/Effects/Unstrtched Circles" {
 					return o;
 				}
 
-				float4 frag(v2f o) : COLOR{
+				float4 frag(v2f o) : COLOR
+				{
 
-					// Usually you'll see 'v2f i' for Input, but this saves time when I copy stuff between 
-					// vert and frag functions.
+					const float upscale = 16;
 
-
-					const float downscale = 5;
-
-					float dx = ddx(o.texcoord.x * downscale);
-					float dy = ddy(o.texcoord.y * downscale);
-
-				//	float diff = abs( fwidth(o.texcoord.xy));
+					float dx = ddx(o.texcoord.x * upscale);
+					float dy = ddy(o.texcoord.y * upscale);
 
 					o.texcoord.xy = o.texcoord.xy % 1;
 				
 					float2 off = abs(o.texcoord.xy - 0.5);
 
-					
-				//	off.x *= diffY * 25;
-					//off.y *= diffX * 25 ;
 
 					off.x = off.x / (dx ) ;
 					off.y = off.y / (dy );
 
 
 					off *= off;
-
-				
-
-					//off.x = smoothstep(0.25 - diffX * 4, 0.25, abs(off.x));
-					//off.y = smoothstep(0.25 - diffY * 4, 0.25, abs(off.y));
-
-					//float rel = diffX / diffY;
-
-					//off *= float2(rel, 1/rel);
-
-					//return rel;
-					//off.x = smoothstep(0, 1-diffX*10, off.x);
-
-					//float rel = diffX / diffY;
-
-
-					//off *= float2(rel, 1/rel);
-					//off *= off;
-
-					//o.viewDir.xyz = normalize(o.viewDir.xyz);
-					//float2 duv = o.screenPos.xy / o.screenPos.w;
 
 					float4 col = o.color * tex2D(_MainTex, o.texcoord.xy);
 

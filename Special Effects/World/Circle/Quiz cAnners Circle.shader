@@ -1,7 +1,7 @@
 ﻿Shader "Quiz cAnners/Effects/Circle_Additive" {
 	Properties{
 		_Color("Color", Color) = (1,1,1,1)
-		_Hardness("Hardness", Range(1,16)) = 2
+		_Hardness("Hardness", Range(0.1,16)) = 1
 	}
 
 	Category{
@@ -52,9 +52,9 @@
 					off *= off;
 					float len = (off.x + off.y) * 2;
 
-					float diff = length(fwidth(i.texcoord));
+					float diff = length(fwidth(i.texcoord)) * 3;
 
-					float alpha = 1- smoothstep(0.5 - diff * 4, 0.5, len); 
+					float alpha = 1- smoothstep(0.5 - diff * _Hardness, 0.5, len);
 
 					_Color.a *= alpha;
 

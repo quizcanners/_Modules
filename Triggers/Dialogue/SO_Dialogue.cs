@@ -8,7 +8,7 @@ using UnityEngine;
 namespace QuizCanners.IsItGame.Triggers.Dialogue
 {
 
-    [CreateAssetMenu(fileName = FILE_NAME, menuName = "Quiz Canners/" + Singleton_TriggerValues.TRIGGERS + "/" + FILE_NAME)]
+    [CreateAssetMenu(fileName = FILE_NAME, menuName = QcUnity.SO_CREATE_MENU + Singleton_TriggerValues.TRIGGERS + "/" + FILE_NAME)]
     public class SO_Dialogue : CfgSelfSerializationBaseScriptableObject, IPEGI, ISerializationCallbackReceiver, ICfg
     {
         public const string FILE_NAME = "Dialogue";

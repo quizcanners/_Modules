@@ -50,7 +50,7 @@ namespace QuizCanners.SpecialEffects
             }
         }
 
-        protected override void OnBeforeOnDisableOrEnterPlayMode()
+        protected override void OnBeforeOnDisableOrEnterPlayMode(bool afterEnableCalled)
         {
             if (!Application.isPlaying)
             {

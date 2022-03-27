@@ -155,7 +155,7 @@ namespace QuizCanners.SpecialEffects
 
             "Transition speed".PegiLabel(120).Edit(ref _transitionSpeed).Nl();
 
-            "Transition mode".PegiLabel(140).EditEnum(ref mode).Nl();
+            "Transition mode".PegiLabel(140).Edit_Enum(ref mode).Nl();
 
             if ("Transition + BG".PegiLabel().Click())
                 Transition(null, updateBackground: true);

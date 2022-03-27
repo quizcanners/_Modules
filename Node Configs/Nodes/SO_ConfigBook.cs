@@ -8,7 +8,7 @@ using System;
 namespace QuizCanners.IsItGame.NodeNotes
 {
 
-    [CreateAssetMenu(fileName = FILE_NAME, menuName = "Quiz Canners/" + Singleton_ConfigNodes.NODE_CONFIGS + "/" + FILE_NAME)]
+    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_ConfigNodes.NODE_CONFIGS + "/" + FILE_NAME)]
     public partial class SO_ConfigBook : ScriptableObject, IPEGI, IPEGI_ListInspect, IGotName, ICfg, ISerializationCallbackReceiver
     {
         public const string FILE_NAME = "Node Book";

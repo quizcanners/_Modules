@@ -7,7 +7,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace QuizCanners.IsItGame
 {
-    [CreateAssetMenu(fileName = FILE_NAME, menuName = "Quiz Canners/" + Singleton_GameController.PROJECT_NAME + "/Managers/Audio/" + FILE_NAME)]
+    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_GameController.PROJECT_NAME + "/Managers/Audio/" + FILE_NAME)]
     public class SO_Music_ClipData : ScriptableObject, IPEGI_ListInspect
     {
         public const string FILE_NAME = "Song";
@@ -63,7 +63,7 @@ namespace QuizCanners.IsItGame
         public void InspectInList(ref int edited, int ind)
         {
 
-            var enm = (IigEnum_Music)ind;
+            var enm = (Game.Enums.Music)ind;
             enm.ToString().PegiLabel().Write();
 
             if (Icon.Play.Click())

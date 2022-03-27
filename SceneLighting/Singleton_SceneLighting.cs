@@ -150,7 +150,7 @@ namespace QuizCanners.SpecialEffects
                 {
                     "Fog Color".PegiLabel(60).Edit(ref fogColor.targetValue).Nl();
 
-                    if ("Fog Mode".PegiLabel(60).EditEnum(ref fogMode).Nl())
+                    if ("Fog Mode".PegiLabel(60).Edit_Enum(ref fogMode).Nl())
                         RenderSettings.fogMode = fogMode;
                 }
 

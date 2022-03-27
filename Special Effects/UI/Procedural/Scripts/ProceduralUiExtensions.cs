@@ -94,7 +94,7 @@ namespace QuizCanners.SpecialEffects
         public override bool Inspect(Material mat)
         {
 
-            var changed = pegi.toggleDefaultInspector(mat);
+            var changed = pegi.Toggle_DefaultInspector(mat);
 
             mat.PegiToken().Edit(Softness, "Softness", 0, 1).Nl();
 

@@ -58,10 +58,10 @@ namespace QuizCanners.IsItGame
 
             switch (pegi.GameView.LatestEvent)
             {
-                case pegi.LatestInteractionEvent.Click: IigEnum_SoundEffects.Click.Play(); break;
-                case pegi.LatestInteractionEvent.SliderScroll: IigEnum_SoundEffects.Scratch.Play(); break;
-                case pegi.LatestInteractionEvent.Enter: IigEnum_SoundEffects.Tab.Play(); break;
-                case pegi.LatestInteractionEvent.Exit: IigEnum_SoundEffects.MouseExit.Play(); break;
+                case pegi.LatestInteractionEvent.Click: Game.Enums.SoundEffects.Click.PlayOneShot(); break;
+                case pegi.LatestInteractionEvent.SliderScroll: Game.Enums.SoundEffects.Scratch.PlayOneShot(); break;
+                case pegi.LatestInteractionEvent.Enter: Game.Enums.SoundEffects.Tab.PlayOneShot(); break;
+                case pegi.LatestInteractionEvent.Exit: Game.Enums.SoundEffects.MouseExit.PlayOneShot(); break;
             }
         }
 

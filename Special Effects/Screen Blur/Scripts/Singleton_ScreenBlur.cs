@@ -316,7 +316,7 @@ namespace QuizCanners.SpecialEffects
 
             if ("Settings".PegiLabel().IsFoldout().Nl())
             {
-                "Grab Method".PegiLabel(90).EditEnum(ref grabMethod);
+                "Grab Method".PegiLabel(90).Edit_Enum(ref grabMethod);
                 pegi.FullWindow.DocumentationClickOpen(() =>
                 {
                     "Screen Grab captures the final result, but is flipped upside-down on some versions of Unity".PegiLabel().Write();
@@ -325,8 +325,10 @@ namespace QuizCanners.SpecialEffects
 
                 pegi.Nl();
 
-                "Screen Grab Blur".PegiLabel().Nested_Inspect(ref screenGrabBlurCounter);
-                "Background Blur".PegiLabel().Nested_Inspect(ref backgroundBlurCounter);
+                "Screen Grab Blur".PegiLabel().Nl();
+                pegi.Nested_Inspect(screenGrabBlurCounter).Nl();
+                "Background Blur".PegiLabel().Nl();
+                pegi.Nested_Inspect(backgroundBlurCounter).Nl();
                 pegi.FullWindow.DocumentationClickOpen(() => "For how many frames the Blur operation will be executed.");
 
                 pegi.Nl();

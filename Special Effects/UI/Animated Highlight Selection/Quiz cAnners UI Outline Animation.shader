@@ -1,4 +1,4 @@
-Shader "Playtime Painter/UI/Outline Animation"{
+Shader "Quiz cAnners/UI/Outline Animation"{
 	Properties
 	{
 		[PerRendererData] _MainTex("Sprite Texture", 2D) = "white" {}
@@ -6,7 +6,8 @@ Shader "Playtime Painter/UI/Outline Animation"{
 		[Toggle(SPRITE_IS_RED)] _UseRedSprite("Use Red Channel", Float) = 0
 
 		_Color("Tint", Color) = (1,1,1,1)
-		 _SpiralMask("Spiral Mask (R)", 2D) = "black"{}
+
+		[Toggle(_DEBUG)] debug("Debug", Float) = 0
 
 		_StencilComp("Stencil Comparison", Float) = 8
 		_Stencil("Stencil ID", Float) = 0
@@ -55,6 +56,7 @@ Shader "Playtime Painter/UI/Outline Animation"{
 			#pragma target 2.0
 
 			#pragma shader_feature_local  ___  SPRITE_IS_RED
+			#pragma shader_feature_local  ___ _DEBUG
 
 			#include "UnityCG.cginc"
 			#include "UnityUI.cginc"
@@ -79,7 +81,6 @@ Shader "Playtime Painter/UI/Outline Animation"{
 			};
 
 			sampler2D _MainTex;
-			sampler2D _SpiralMask;
 			float _Effect_Time;
 			float4 _Color;
 			float4 _TextureSampleAdd;
@@ -108,42 +109,47 @@ Shader "Playtime Painter/UI/Outline Animation"{
 			{
 				IN.screenPos.xy /= IN.screenPos.w;
 
-				half alpha = tex2Dlod(_MainTex, float4( IN.texcoord,0,3)).
-					#if SPRITE_IS_RED
+				float alpha = tex2Dlod(_MainTex, float4(IN.texcoord,0,3)).
+#					if SPRITE_IS_RED
 							r
-					#else
+#					else
 							a
-					#endif
+#					endif
 					;
-	
+
 				half2 uv = IN.unchangedPosition.xy;
 
 				half offset = alpha * 0.1;
 
-				half angle = _Effect_Time * 20 + offset ;
+				const float pii = 3.14159265359;
+				const float pi2 = pii * 2;
 
-				half2 off = (uv - 0.5) / 2;
-				half2 rotUV = off;
-				half si = sin(angle);
-				half co = cos(angle);
+				float time = (_Effect_Time * 10) % pi2;
 
-				half tx = rotUV.x;
-			    half ty = rotUV.y;
-				rotUV.x = (co * tx) - (si * ty);
-				rotUV.y = (si * tx) + (co * ty);
-				rotUV += 0.5;
+				float2 centerUv = IN.texcoord.xy - 0.5;
 
-				float circle = tex2Dlod(_SpiralMask, float4(rotUV,0,0)).r;
+				float pixelAngle = (atan2(centerUv.x, centerUv.y) + pii); // / pi2;
 
-				float circulating = circle *  alpha; 
+#				if _DEBUG
+				float diff = 1;
+#				else 
+
+				float diff = smoothstep(0.2, 0, min(
+					abs(time - pixelAngle),
+					pi2 - abs(time - pixelAngle)
+				));
+
+#				endif
+
+
 
 				float4 color = IN.color;
 
-				color.rgb *= color.a * circulating;
+				color.rgb *= color.a * diff * alpha;
 
-				float3 mix = color.gbr*color.brg;
+				float3 mix = color.gbr * color.brg;
 
-				color.rgb += color.rgb * 0.2;
+				color.rgb += mix.rgb * 0.2;
 
 				color.a = 1;
 

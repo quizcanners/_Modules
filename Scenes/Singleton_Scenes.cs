@@ -1,4 +1,5 @@
 using QuizCanners.Inspect;
+using QuizCanners.IsItGame.StateMachine;
 using QuizCanners.Utils;
 using UnityEngine;
 
@@ -17,7 +18,7 @@ namespace QuizCanners.IsItGame
         {
             if (TryEnterIfStateChanged()) 
             {
-                _scenes.LoadAndUnloadOthers(Game.State.Get<Game.Enums.Scene>());
+                _scenes.LoadAndUnloadOthers(GameState.Machine.GetAllAdditive<Game.Enums.Scene>());
             }
         }
 
@@ -38,14 +39,14 @@ namespace QuizCanners.IsItGame
         public override void Inspect()
         {
             pegi.Nl();
-            "Scenes".PegiLabel().Edit_enter_Inspect(ref _scenes, ref _inspectedStuff, 0).Nl();
+            "Scenes".PegiLabel().Edit_Enter_Inspect(ref _scenes, ref _inspectedStuff, 0).Nl();
         }
 
         private Game.Enums.Scene _debugScene = Game.Enums.Scene.None;
 
         public override void InspectInList(ref int edited, int ind)
         {
-            "Scene".PegiLabel(50).EditEnum(ref _debugScene);
+            "Scene".PegiLabel(50).Edit_Enum(ref _debugScene);
 
             if (_debugScene != Game.Enums.Scene.None) 
             {

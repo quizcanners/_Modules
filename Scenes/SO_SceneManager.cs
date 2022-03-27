@@ -10,7 +10,7 @@ using UnityEditor;
 
 namespace QuizCanners.IsItGame
 {
-    [CreateAssetMenu(fileName = FILE_NAME, menuName = "Quiz Canners/" + Singleton_GameController.PROJECT_NAME + "/Managers/" + FILE_NAME)]
+    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_GameController.PROJECT_NAME + "/Managers/" + FILE_NAME)]
     public class SO_SceneManager : ScriptableObject, IPEGI, INeedAttention, Singleton.ILoadingProgressForInspector
     {
         public const string FILE_NAME = "Scenes Manager";
@@ -154,7 +154,7 @@ namespace QuizCanners.IsItGame
 
             public void InspectInList(ref int edited, int ind)
             {
-                pegi.EditEnum(ref Type, width: 120);
+                pegi.Edit_Enum(ref Type, width: 120);
 
                 if (IsLoaded)
                 {

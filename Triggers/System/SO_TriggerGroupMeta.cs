@@ -6,7 +6,7 @@ using UnityEngine;
 namespace QuizCanners.IsItGame.Triggers
 {
 
-    [CreateAssetMenu(fileName = FILE_NAME+ ".triggers", menuName = "Quiz Canners/" + Singleton_TriggerValues.TRIGGERS + "/" + FILE_NAME)]
+    [CreateAssetMenu(fileName = FILE_NAME+ ".triggers", menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_TriggerValues.TRIGGERS + "/" + FILE_NAME)]
     public class SO_TriggerGroupMeta : ScriptableObject, IPEGI, IGotName
     {
         public const string FILE_NAME = "Triggers Meta";

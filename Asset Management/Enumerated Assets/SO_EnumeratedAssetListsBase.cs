@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using QuizCanners.Inspect;
 using QuizCanners.Utils;
@@ -10,10 +9,19 @@ namespace QuizCanners.IsItGame
 {
     public abstract class EnumeratedAssetListsBase<T, G> : ScriptableObject, IPEGI where T : struct, IComparable, IFormattable, IConvertible where G : Object
     {
-
-       // public Object defaultAsset;
-
         [SerializeField] protected List<EnumeratedObjectList> enumeratedObjects = new List<EnumeratedObjectList>();
+
+        public bool TryGet(T key, out G obj) 
+        {
+            if (TryGet(key, out EnumeratedObjectList sp))
+            {
+                obj = sp.list.GetRandom() as G;
+                return obj;
+            }
+
+            obj = null;
+            return false;
+        }
 
         private bool TryGet(T value, out EnumeratedObjectList obj)
         {
@@ -30,9 +38,6 @@ namespace QuizCanners.IsItGame
             return false;
         }
 
-        public virtual G Get(T enumKey) => (TryGet(enumKey, out EnumeratedObjectList sp) ? sp.list.GetRandom() : null) as G;
-        
-
         #region Inspector
 
         private int _inspectedList = -1;
@@ -42,16 +47,13 @@ namespace QuizCanners.IsItGame
 
            // "Defaul {0}".F(typeof(G).ToPegiStringType()).edit(120, ref defaultAsset, allowSceneObjects: true).nl();
 
-            EnumeratedObjectList.inspectedEnum = typeof(T);
-            EnumeratedObjectList.inspectedObjectType = typeof(G);
+            EnumeratedObjectList.s_InspectedEnum = typeof(T);
+            EnumeratedObjectList.s_InspectedObjectType = typeof(G);
 
             "Enumerated {0}".F(typeof(G).ToPegiStringType()).PegiLabel().Edit_List(enumeratedObjects, ref _inspectedList).Nl();
 
         }
         #endregion
-
-
-
     }
 
     [Serializable]
@@ -61,19 +63,19 @@ namespace QuizCanners.IsItGame
         public List<Object> list;
 
         #region Inspector
-        public static Type inspectedEnum;
-        public static Type inspectedObjectType;
+        public static Type s_InspectedEnum;
+        public static Type s_InspectedObjectType;
 
         public void InspectInList(ref int edited, int ind)
         {
             var changeToken = pegi.ChangeTrackStart();
 
-            var name = Enum.ToObject(inspectedEnum, ind).ToString();
+            var name = Enum.ToObject(s_InspectedEnum, ind).ToString();
 
             if (!nameForInspector.Equals(name))
             {
                 nameForInspector = name;
-                changeToken.Changed = true;
+                changeToken.Feed(isChanged: true);
             }
 
             "{0} [{1}]".F(nameForInspector, GetCount()).PegiLabel().Write();
@@ -81,14 +83,14 @@ namespace QuizCanners.IsItGame
             if (list == null)
             {
                 list = new List<Object>();
-                changeToken.Changed = true;
+                changeToken.Feed(isChanged: true);
             }
 
             if (list.Count < 2)
             {
                 var el = list.TryGet(0);
 
-                if (pegi.Edit(ref el, inspectedObjectType, 90))
+                if (pegi.Edit(ref el, s_InspectedObjectType, 90))
                     list.ForceSet(0, el);
             }
 
@@ -104,9 +106,6 @@ namespace QuizCanners.IsItGame
         {
             "All {0}".F(nameForInspector).PegiLabel().Edit_List_UObj(list);
         }
-
-
-
         #endregion
     }
 }
