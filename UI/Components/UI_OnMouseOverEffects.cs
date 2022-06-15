@@ -68,7 +68,7 @@ namespace QuizCanners.IsItGame.UI
             _mouseExitSound.PlayOneShot();
         }
 
-        private readonly LerpData ld = new();
+        private readonly LerpData ld = new(unscaledTime: true);
 
         private readonly Gate.Bool isHighlightedGate = new();
 
@@ -126,8 +126,6 @@ namespace QuizCanners.IsItGame.UI
                 if (Graphic)
                     Graphic.color = col.CurrentValue;
             }
-
-         
         }
 
     }

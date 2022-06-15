@@ -34,7 +34,7 @@ namespace QuizCanners.SpecialEffects
 
             targetTilt *= new Vector2(Screen.width, Screen.height) / mouseEffectRadius;
 
-            if (LerpUtils.IsLerpingBySpeed(ref tilt, targetTilt, speed: speed))
+            if (LerpUtils.IsLerpingBySpeed(ref tilt, targetTilt, speed: speed, unscaledTime: true))
             {
                 if (tilt.magnitude > maxTilt)
                     tilt = tilt.normalized * maxTilt;

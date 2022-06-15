@@ -69,8 +69,7 @@ namespace QuizCanners.IsItGame.UI
 
                     if (holding || _portion > 0f)
                     {
-                        LerpUtils.IsLerpingBySpeed(ref _portion, holding ? 1 : 0, 5);
-
+                        LerpUtils.IsLerpingBySpeed(ref _portion, holding ? 1 : 0, 5, unscaledTime: true);
                         _localScale = 1 + _portion * (Mathf.Sin(Time.time * 50) + 1) * 0.25f * (MinSize - 1);
                     }
                     else
@@ -81,7 +80,7 @@ namespace QuizCanners.IsItGame.UI
                     break;
 
                 case Direction.PressedShakeDown:
-                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, 0.92f, _speed))
+                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, 0.92f, _speed, unscaledTime: true))
                         _direction = Direction.PressedShakeUp;
 
                     Game.Enums.SoundEffects.Ice.PlayOneShot(clipVolume: 0.2f);
@@ -89,7 +88,7 @@ namespace QuizCanners.IsItGame.UI
                     break;
 
                 case Direction.PressedShakeUp:
-                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, 0.97f, _speed))
+                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, 0.97f, _speed, unscaledTime: true))
                         _direction = Direction.PressedShakeDown;
 
                     Game.Enums.SoundEffects.Ice.PlayOneShot(clipVolume: 0.2f);
@@ -97,7 +96,7 @@ namespace QuizCanners.IsItGame.UI
                     break;
 
                 case Direction.Upscale:
-                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, MaxSize, _speed))
+                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, MaxSize, _speed, unscaledTime: true))
                     {
                         _portion *= 0.66f;
                         _direction = Direction.Downscale;
@@ -107,7 +106,7 @@ namespace QuizCanners.IsItGame.UI
 
                 case Direction.Downscale:
 
-                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, MinSize, _fadeSpeed))
+                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, MinSize, _fadeSpeed, unscaledTime: true))
                     {
                         _portion *= 0.66f;
                         _direction = Direction.WobbleUp;
@@ -117,7 +116,7 @@ namespace QuizCanners.IsItGame.UI
                 case Direction.WobbleUp:
 
 
-                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, 1.01f, _speed))
+                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, 1.01f, _speed, unscaledTime: true))
                     {
                         _portion *= 0.66f;
                         _direction = Direction.FadeToNormal;
@@ -128,7 +127,7 @@ namespace QuizCanners.IsItGame.UI
 
                 case Direction.FadeToNormal:
 
-                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, 1, _fadeSpeed))
+                    if (!LerpUtils.IsLerpingBySpeed(ref _localScale, 1, _fadeSpeed, unscaledTime: true))
                     {
                         _portion = 0;
                         _direction = Direction.Idle;

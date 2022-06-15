@@ -220,7 +220,7 @@ namespace QuizCanners.SpecialEffects
         #region Lerping
 
 
-        private readonly LerpData ld = new();
+        private readonly LerpData ld = new(unscaledTime: true);
 
 
         private List<LinkedLerp.BaseLerp> lerpsList;

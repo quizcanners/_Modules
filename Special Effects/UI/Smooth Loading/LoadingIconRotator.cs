@@ -32,7 +32,7 @@ namespace QuizCanners.SpecialEffects
             if (cnt > 1)
             {
 
-                var changing = LerpUtils.IsLerpingBySpeed(ref transparency, isFadingOut ? 0f : 1f, isFadingOut ? 8f : 2f);
+                var changing = LerpUtils.IsLerpingBySpeed(ref transparency, isFadingOut ? 0f : 1f, isFadingOut ? 8f : 2f, unscaledTime: true);
 
                 if (changing || transparency > 0)
                 {

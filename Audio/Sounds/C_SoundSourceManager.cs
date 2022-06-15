@@ -92,7 +92,7 @@ namespace QuizCanners.IsItGame
 
                 if (_isFadingOut) 
                 {
-                    Volume = LerpUtils.LerpBySpeed(Volume, 0, soundPolution);
+                    Volume = LerpUtils.LerpBySpeed(Volume, 0, soundPolution, unscaledTime: true);
                     if (Volume < 0.01f) 
                     {
                         s.pool.ReturnToPool(this);

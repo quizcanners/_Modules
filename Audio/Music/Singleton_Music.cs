@@ -156,9 +156,9 @@ namespace QuizCanners.IsItGame
 
             float volumeChangeSpeed = _applicationPaused ? 2 : 0.5f;
 
-            bool changingVolume = LerpUtils.IsLerpingBySpeed(ref _currentVolumeScale, lerpSoundTo, volumeChangeSpeed);
+            bool changingVolume = LerpUtils.IsLerpingBySpeed(ref _currentVolumeScale, lerpSoundTo, volumeChangeSpeed, unscaledTime: true);
 
-            if (LerpUtils.IsLerpingBySpeed(ref _transitionProgress, 1, 1f) || changingVolume)
+            if (LerpUtils.IsLerpingBySpeed(ref _transitionProgress, 1, 1f, unscaledTime: true) || changingVolume)
             {
                 ActiveSource.volume = _transitionProgress * _currentVolumeScale;
                 FadingSource.volume = (1 - _transitionProgress) * _currentVolumeScale;

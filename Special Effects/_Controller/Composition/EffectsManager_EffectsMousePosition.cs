@@ -56,12 +56,12 @@ namespace QuizCanners.SpecialEffects
 
                     mouseDownStrengthOneDirectional = LerpUtils.LerpBySpeed(mouseDownStrengthOneDirectional,
                         down ? 0 : 1,
-                        down ? 4f : (3f - mouseDownStrengthOneDirectional * 3f));
+                        down ? 4f : (3f - mouseDownStrengthOneDirectional * 3f), unscaledTime: true);
 
                     mouseDownStrength = LerpUtils.LerpBySpeed(mouseDownStrength,
                         downClickFullyShown ? 0 :
                         (down ? 0.9f : 1f),
-                        (down) ? 2 : (downClickFullyShown ? 0.75f : 2.5f));
+                        (down) ? 2 : (downClickFullyShown ? 0.75f : 2.5f), unscaledTime: true);
 
                     if (mouseDownStrength > 0.99f)
                         downClickFullyShown = true;
