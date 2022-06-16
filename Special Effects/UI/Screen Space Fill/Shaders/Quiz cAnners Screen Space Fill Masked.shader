@@ -3,9 +3,9 @@
 	Properties
 	{
 		[PerRendererData]
-		_MainTex("Mask Texture", 2D) = "white" {}
-		_FillTex("Fill Texture", 2D) = "white" {}
-
+		_MainTex("Mask", 2D) = "white" {}
+		_FillTexture("Mask Texture", 2D) = "white" {}
+		
 		[KeywordEnum(None, Regular, TopOnly)] _GYRO_MODE("Gyroscope (When On)", Float) = 0
 		_OffsetAmount("Offset Amount", float) = 1
 
@@ -76,13 +76,13 @@
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
 
+			uniform sampler2D _FillTexture;
 			uniform sampler2D _MainTex;
-			uniform sampler2D _FillTex;
 			uniform float4 _ClipRect;
-			uniform float4 _FillTex_ST;
+			uniform float4 _MainTex_ST;
 			uniform float _OffsetAmount;
-			//uniform float4 _MainTex_TexelSize;
-			uniform float4 _FillTex_TexelSize;
+			//uniform float4 _FillTexture_TexelSize;
+			uniform float4 _MainTex_TexelSize;
 			uniform float4 _ColorOverlay;
 			uniform float4 qc_ParallaxOffset;
 
@@ -100,9 +100,9 @@
 
 				float screenAspect = _ScreenParams.x * (_ScreenParams.w - 1);
 
-				//* _FillTex_ST.xy + _FillTex_ST.zw
+				//* _MainTex_ST.xy + _MainTex_ST.zw
 
-				float texAspect = _FillTex_TexelSize.y * _FillTex_TexelSize.z;///max(0.001, _FillTex_ST.x)/max(0.001, _FillTex_ST.y);
+				float texAspect = _MainTex_TexelSize.y * _MainTex_TexelSize.z;///max(0.001, _MainTex_ST.x)/max(0.001, _MainTex_ST.y);
 
 				float2 aspectCorrection = float2(1, 1);
 
@@ -119,7 +119,7 @@
 
 			float4 frag(v2f o) : SV_Target {
 
-				float4 mask = tex2Dlod(_MainTex, float4(o.texcoord.xy ,0,0));
+				float4 mask = tex2Dlod(_FillTexture, float4(o.texcoord.xy ,0,0));
 
 				mask.a *= o.color.a;
 
@@ -142,7 +142,7 @@
 					+ 0.5;
 
 
-				float4 color = tex2Dlod(_FillTex, float4(fragCoord + _FillTex_ST.zw,0, 0));
+				float4 color = tex2Dlod(_MainTex, float4(fragCoord + _MainTex_ST.zw,0, 0));
 
 				color.rgb *= o.color.rgb;
 				#if USE_MASK_COLOR
