@@ -23,7 +23,7 @@ namespace QuizCanners.IsItGame.Triggers
         public bool GetValue();
     }
 
-    internal abstract class TriggerIndexBase : ITriggerIndex, ICfg, IGotReadOnlyName, IPEGI_ListInspect, IPEGI {
+    internal abstract class TriggerIndexBase : ITriggerIndex, ICfg, IPEGI_ListInspect, IPEGI {
 
         public string GroupId;
         public string TriggerId;
@@ -69,7 +69,7 @@ namespace QuizCanners.IsItGame.Triggers
 
         #region Inspector
 
-        public virtual string GetReadOnlyName() => GetType().ToPegiStringType();
+        public override string ToString() => GetType().ToPegiStringType();
 
         public void InspectInList(ref int edited, int index)
         {

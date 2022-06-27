@@ -17,7 +17,7 @@ namespace QuizCanners.IsItGame
      
         [NonSerialized] private AudioClip _targetClip;
         [NonSerialized] private float _startTargetClipAt;
-        [NonSerialized] private bool _playSilence;
+        [NonSerialized] private bool _loadingNextClip;
         [NonSerialized] private float _transitionProgress;
         [NonSerialized] private float _currentVolumeScale = 1;
         [NonSerialized] private bool _activeIsA;
@@ -29,7 +29,7 @@ namespace QuizCanners.IsItGame
         private readonly PlayerPrefValue.Bool _musicIsOn = new("WantMusic", defaultValue: true);
         private readonly PlayerPrefValue.Float _musicVolume = new("MusicVolume", defaultValue: 0.5f);
 
-        private readonly Dictionary<string, float> _perSongPlaybeckResume = new();
+        private readonly Dictionary<AudioClip, float> _perSongPlaybeckResume = new();
 
         private AudioSource ActiveSource => _activeIsA ? sourceA : sourceB;
         private AudioSource FadingSource => _activeIsA ? sourceB : sourceA;
@@ -37,10 +37,17 @@ namespace QuizCanners.IsItGame
         public float Volume
         {
             get => _musicIsOn.GetValue() ? _musicVolume.GetValue() : 0;
-            set 
+            set => _musicVolume.SetValue(value);
+        }
+
+        public float Progress 
+        {
+            get => ActiveSource.clip ? (ActiveSource.time / ActiveSource.clip.length) : 0;
+            set
             {
-                _musicVolume.SetValue(value);
-                SetDirty();
+                if (!ActiveSource.clip)
+                    return;
+                ActiveSource.time = value * ActiveSource.clip.length;
             }
         }
 
@@ -61,7 +68,7 @@ namespace QuizCanners.IsItGame
         {
             _latestRequestVersion += 1;
             int thisRequest = _latestRequestVersion;
-            _playSilence = true;
+            _loadingNextClip = true;
 
             if (data == null) 
             {
@@ -78,7 +85,7 @@ namespace QuizCanners.IsItGame
 
                 _targetSongVolumeScale = data.Volume;
 
-                float startAt = (data.AlwaysStartFromBeginning || !clip) ? 0 : _perSongPlaybeckResume.TryGet(clip.name);
+                float startAt = (data.AlwaysStartFromBeginning || !clip) ? 0 : _perSongPlaybeckResume.TryGet(clip);
 
                 Play_Internal(clip, skipTransition: skipTransition, startAt: startAt);
             }));
@@ -89,7 +96,8 @@ namespace QuizCanners.IsItGame
             _latestRequestVersion += 1;
             _targetClip = clip;
             _startTargetClipAt = startAt;
-            _playSilence = !clip;
+            _loadingNextClip = false;
+
             if (skipTransition)
             {
                 Flip();
@@ -104,7 +112,10 @@ namespace QuizCanners.IsItGame
 
             if (curClip) 
             {
-                _perSongPlaybeckResume[curClip.name] = ActiveSource.time;
+                if (ActiveSource.time < curClip.length * 0.5)
+                    _perSongPlaybeckResume[curClip] = ActiveSource.time;
+                else
+                    _perSongPlaybeckResume.Remove(curClip);
             }
 
             // Flip Sources
@@ -152,7 +163,7 @@ namespace QuizCanners.IsItGame
                     Play(song);
             }
 
-            float lerpSoundTo = _applicationPaused ? 0 : (_playSilence ? 0 : Volume * _targetSongVolumeScale);
+            float lerpSoundTo = _applicationPaused ? 0 : ((_loadingNextClip || currentlyPlaying == Game.Enums.Music.None) ? 0 : Volume * _targetSongVolumeScale);
 
             float volumeChangeSpeed = _applicationPaused ? 2 : 0.5f;
 
@@ -195,13 +206,20 @@ namespace QuizCanners.IsItGame
                         Flip();
                     }
                 }
+            } else 
+            {
+                if (!_loadingNextClip && ActiveSource.clip && currentlyPlaying!= Game.Enums.Music.None) 
+                {
+                    if (ActiveSource.clip.length - ActiveSource.time < 5) 
+                    {
+                        if (Music.VariantsCount(currentlyPlaying) > 1 && Music.TryGet(currentlyPlaying, out var nextSong))
+                            Play_Internal(nextSong);
+                    }
+                }
             }
         }
 
         #region Inspector
-        public override string InspectedCategory => Singleton.Categories.SCENE_MGMT;
-        private Game.Enums.Music _debugCoreMusic = Game.Enums.Music.None;
-        private int _inspectedStuff = -1;
 
         public override void InspectInList(ref int edited, int ind)
         {
@@ -210,42 +228,58 @@ namespace QuizCanners.IsItGame
             base.InspectInList(ref edited, ind);
 
         }
+
+        public override string InspectedCategory => Singleton.Categories.SCENE_MGMT;
+        private Game.Enums.Music _debugCoreMusic = Game.Enums.Music.None;
+        private readonly pegi.EnterExitContext _context = new pegi.EnterExitContext(playerPrefId: "MskInsp");
+
         public override void Inspect()
         {
             base.Inspect();
 
-            if (_inspectedStuff == -1) 
+            using (_context.StartContext())
             {
-                if ("Song To Play".PegiLabel().Edit_Enum(ref _debugCoreMusic) | Icon.Play.Click().Nl())
-                    _debugCoreMusic.Play();
-
-                var v = Volume;
-                "Volume".PegiLabel(50).Edit(ref v, 0, 2).Nl(()=> Volume = v);
-
-                if (!sourceA && !sourceB) 
+                if (_context.IsAnyEntered == false)
                 {
-                    "No Audio Sources Assigned".PegiLabel().WriteWarning();
+                    if ("Song To Play".PegiLabel().Edit_Enum(ref _debugCoreMusic) | Icon.Play.Click().Nl())
+                        _debugCoreMusic.Play();
 
-                    "Create Audio Sources".PegiLabel().Click().Nl().OnChanged(() =>
+                    if (ActiveSource.clip) 
                     {
-                        var obj = new GameObject("Source A", typeof(AudioSource));
-                        obj.transform.SetParent(transform);
-                        sourceA = obj.GetComponent<AudioSource>();
-                        sourceA.playOnAwake = false;
+                        var p = Progress;
+                        if ("Progress".PegiLabel(80).Edit_01(ref p).Nl())
+                            Progress = p;
+                    }
 
-                        obj = new GameObject("Source B", typeof(AudioSource));
-                        obj.transform.SetParent(transform);
-                        sourceB = obj.GetComponent<AudioSource>();
-                        sourceB.playOnAwake = false;
-                    });
-                } else if (Application.isPlaying) 
-                {
-                    "Active Playing: {0} Clip: {1}".F(ActiveSource.isPlaying, ActiveSource.clip).PegiLabel().Nl();
-                    "Fading Playing: {0} Clip: {1}".F(FadingSource.isPlaying, FadingSource.clip).PegiLabel().Nl();
+                    var v = Volume;
+                    "Volume".PegiLabel(50).Edit(ref v, 0, 2).Nl(() => Volume = v);
+
+                    if (!sourceA && !sourceB)
+                    {
+                        "No Audio Sources Assigned".PegiLabel().WriteWarning();
+
+                        "Create Audio Sources".PegiLabel().Click().Nl().OnChanged(() =>
+                        {
+                            var obj = new GameObject("Source A", typeof(AudioSource));
+                            obj.transform.SetParent(transform);
+                            sourceA = obj.GetComponent<AudioSource>();
+                            sourceA.playOnAwake = false;
+
+                            obj = new GameObject("Source B", typeof(AudioSource));
+                            obj.transform.SetParent(transform);
+                            sourceB = obj.GetComponent<AudioSource>();
+                            sourceB.playOnAwake = false;
+                        });
+                    }
+                    else if (Application.isPlaying)
+                    {
+                        "Active Playing: {0} Clip: {1}".F(ActiveSource.isPlaying, ActiveSource.clip).PegiLabel().Nl();
+                        "Fading Playing: {0} Clip: {1}".F(FadingSource.isPlaying, FadingSource.clip).PegiLabel().Nl();
+                    }
                 }
-            }
 
-            "Music".PegiLabel().Edit_Enter_Inspect(ref Music, ref _inspectedStuff, 0).Nl();
+                "Music".PegiLabel().Edit_Enter_Inspect(ref Music).Nl();
+            }
         }
         public override string NeedAttention()
         {

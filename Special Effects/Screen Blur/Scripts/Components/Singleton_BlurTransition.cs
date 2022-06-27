@@ -6,11 +6,18 @@ namespace QuizCanners.SpecialEffects
     {
         public string InspectedCategory => Categories.SCENE_MGMT;
 
-        protected override void Awake() 
+        public bool IsSingletonActive() => true;
+
+        protected void OnEnable() 
         {
-            base.Awake();
-            Collector.RegisterService(this, typeof(UI_BlurTransitionSimple));
-            Collector.RegisterService(this, typeof(Singleton_BlurTransition));
+            Collector.RegisterSingleton(this, typeof(UI_BlurTransitionSimple));
+            Collector.RegisterSingleton(this, typeof(Singleton_BlurTransition));
+        }
+
+        protected virtual void OnDestroy()
+        {
+            Collector.TryRemove(this, typeof(UI_BlurTransitionSimple));
+            Collector.TryRemove(this, typeof(Singleton_BlurTransition));
         }
     }
 }

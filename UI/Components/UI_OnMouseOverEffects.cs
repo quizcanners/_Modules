@@ -16,8 +16,8 @@ namespace QuizCanners.IsItGame.UI
         , IPointerEnterHandler, IPointerExitHandler
 #endif
     {
-        [SerializeField] private Game.Enums.SoundEffects _mouseEnterSound = Game.Enums.SoundEffects.MouseEnter;
-        [SerializeField] private Game.Enums.SoundEffects _mouseExitSound = Game.Enums.SoundEffects.MouseExit;
+        [SerializeField] private Game.Enums.UiSoundEffects _mouseEnterSound = Game.Enums.UiSoundEffects.MouseEnter;
+        [SerializeField] private Game.Enums.UiSoundEffects _mouseExitSound = Game.Enums.UiSoundEffects.MouseExit;
         [SerializeField] private List<AffectedElement> Elements = new();
 
         [Header("Optional")]

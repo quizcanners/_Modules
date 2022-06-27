@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 namespace QuizCanners.TinyECS
 {
+ 
     public partial class World<W>
     {
         [Serializable]
@@ -19,7 +20,7 @@ namespace QuizCanners.TinyECS
             public abstract int GetCount();
         }
 
-        internal class ComponentArrayGenric<T> : ComponentCollectionBase, IPEGI_ListInspect, IPEGI, IGotReadOnlyName where T : IComponentData
+        internal class ComponentArrayGenric<T> : ComponentCollectionBase, IPEGI_ListInspect, IPEGI where T : struct
         {
             internal ComponentArray components = new ComponentArray();
 
@@ -45,13 +46,20 @@ namespace QuizCanners.TinyECS
                 return new ComponentIndex(index);
             }
 
+            internal ComponentIndex Create(T data)
+            {
+                components.Create(out int index);
+                components[index] = data;
+                return new ComponentIndex(index);
+            }
+
             internal override bool TryDestroy(ComponentIndex index) => components.TryDestroy(index.Index);
 
-            internal class ComponentArray : ValidatabeArrayGeneric<T>
+            internal class ComponentArray : ValidatabeArrayGeneric<T> 
             {
                 protected override T Revalidate(int index)
                 {
-                    return _array[index];
+                    return new T();
                 }
             }
 
@@ -59,12 +67,12 @@ namespace QuizCanners.TinyECS
 
             public void InspectInList(ref int edited, int index)
             {
-                GetReadOnlyName().PegiLabel().Write();
+                ToString().PegiLabel().Write();
                 if (Icon.Enter.Click())
                     edited = index;
             }
             public void Inspect() => components.Nested_Inspect();
-            public string GetReadOnlyName() => "{0} <{1}>".F(typeof(T).ToPegiStringType(), components == null ? "NULL" : components.GetCount());
+            public override string ToString() => "{0} <{1}>".F(typeof(T).ToPegiStringType(), components == null ? "NULL" : components.GetCount());
             public override int GetCount() => components == null ? 0 : components.GetValidatedCount();
             #endregion
         }
@@ -78,13 +86,12 @@ namespace QuizCanners.TinyECS
 
             internal ComponentIndex this[int typeFlag] => _componentIndexes[typeFlag];
             internal bool HasComponents(int subsetFlags) => (componentFlags & subsetFlags) == subsetFlags;
-            internal bool HasComponent<T>() where T : struct, IComponentData
-                => _componentIndexes == null ? false : _componentIndexes.TryGetValue(World.GetFlag<T>(), out _);
+            internal bool HasComponent<T>() where T : struct
+                => _componentIndexes != null && _componentIndexes.TryGetValue(World.GetFlag<T>(), out _);
 
-            internal void AddComponent<T>(SystemActionR<T> onCreate) where T : struct, IComponentData
+            internal void AddComponent<T>(SystemActionR<T> onCreate) where T : struct
             {
                 var flag = World.GetFlag<T>();
-
                 if (_componentIndexes == null)
                     _componentIndexes = new Dictionary<int, ComponentIndex>();
 
@@ -95,21 +102,31 @@ namespace QuizCanners.TinyECS
                 componentFlags |= World.GetFlag<T>();
             }
 
-            internal ComponentIndex AddComponent<T>() where T : struct, IComponentData
+            internal void AddComponent<T>(T data) where T : struct
+            {
+                var flag = World.GetFlag<T>();
+                if (_componentIndexes == null)
+                    _componentIndexes = new Dictionary<int, ComponentIndex>();
+
+                ComponentIndex ind = World.GetComponentDatas<T>().Create(data);
+                _componentIndexes[flag] = ind;
+                componentFlags |= World.GetFlag<T>();
+            }
+
+            internal ComponentIndex AddComponent<T>() where T : struct
             {
                 var flag = World.GetFlag<T>(); 
-
                 if (_componentIndexes == null)
                     _componentIndexes = new Dictionary<int, ComponentIndex>();
 
                 ComponentIndex ind = World.GetComponentDatas<T>().Create();
 
                 _componentIndexes[flag] = ind;
-
                 componentFlags |= World.GetFlag<T>();
 
                 return ind;
             }
+
 
 
             internal void OnDestroy() 
@@ -125,8 +142,8 @@ namespace QuizCanners.TinyECS
                 _componentIndexes.Clear();
                 componentFlags = 0;
             }
-            internal void Remove<T>() where T : struct, IComponentData => Remove_Internal(World.GetFlag<T>());
-            public bool TryGet<T>(out ComponentIndex value) where T : struct, IComponentData
+            internal void Remove<T>() where T : struct => Remove_Internal(World.GetFlag<T>());
+            public bool TryGet<T>(out ComponentIndex value) where T : struct
             {
                 if (_componentIndexes == null)
                 {
@@ -199,5 +216,4 @@ namespace QuizCanners.TinyECS
             Index = index;
         }
     }
-
 }

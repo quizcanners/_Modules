@@ -11,11 +11,19 @@ namespace QuizCanners.IsItGame
     {
         [SerializeField] protected List<EnumeratedObjectList> enumeratedObjects = new List<EnumeratedObjectList>();
 
+        public int VariantsCount(T key) 
+        {
+            if (TryGet(key, out EnumeratedObjectList sp))
+                return sp.list.Count;
+
+            return 0;
+        } 
+
         public bool TryGet(T key, out G obj) 
         {
             if (TryGet(key, out EnumeratedObjectList sp))
             {
-                obj = sp.list.GetRandom() as G;
+                obj = sp.GetRandom() as G;
                 return obj;
             }
 
@@ -40,7 +48,7 @@ namespace QuizCanners.IsItGame
 
         #region Inspector
 
-        private int _inspectedList = -1;
+        private readonly pegi.CollectionInspectorMeta _listMeta = new("Enumerated {0}".F(typeof(G).ToPegiStringType()));
 
         public virtual void Inspect()
         {
@@ -50,17 +58,22 @@ namespace QuizCanners.IsItGame
             EnumeratedObjectList.s_InspectedEnum = typeof(T);
             EnumeratedObjectList.s_InspectedObjectType = typeof(G);
 
-            "Enumerated {0}".F(typeof(G).ToPegiStringType()).PegiLabel().Edit_List(enumeratedObjects, ref _inspectedList).Nl();
+            _listMeta.Edit_List(enumeratedObjects).Nl();
 
         }
         #endregion
     }
 
     [Serializable]
-    public class EnumeratedObjectList : IPEGI_ListInspect, IGotReadOnlyName, IPEGI, IGotCount
+    public class EnumeratedObjectList : IPEGI_ListInspect, IPEGI, IGotCount, INeedAttention
     {
         [SerializeField] private string nameForInspector = "";
         public List<Object> list;
+
+        private int _previousRandom = -1;
+
+        public Object GetRandom() => list.GetRandom(ref _previousRandom);
+
 
         #region Inspector
         public static Type s_InspectedEnum;
@@ -78,7 +91,7 @@ namespace QuizCanners.IsItGame
                 changeToken.Feed(isChanged: true);
             }
 
-            "{0} [{1}]".F(nameForInspector, GetCount()).PegiLabel().Write();
+            "{0} [{1}]".F(nameForInspector, GetCount()).PegiLabel(0.33f).Write();
 
             if (list == null)
             {
@@ -90,21 +103,33 @@ namespace QuizCanners.IsItGame
             {
                 var el = list.TryGet(0);
 
-                if (pegi.Edit(ref el, s_InspectedObjectType, 90))
+                if (pegi.Edit(ref el, s_InspectedObjectType))
                     list.ForceSet(0, el);
             }
 
-            if (Icon.Enter.Click())
+            if (pegi.Click_Enter_Attention(this))
                 edited = ind;
         }
 
         public int GetCount() => list.IsNullOrEmpty() ? 0 : list.Count;
 
-        public string GetReadOnlyName() => nameForInspector + " " + (list.IsNullOrEmpty() ? "Empty" : pegi.GetNameForInspector(list[0]));
+        public override string ToString() => nameForInspector + " " + (list.IsNullOrEmpty() ? "Empty" : pegi.GetNameForInspector(list[0]));
+
+        private readonly pegi.CollectionInspectorMeta _listMeta = new("All");
 
         public void Inspect()
         {
-            "All {0}".F(nameForInspector).PegiLabel().Edit_List_UObj(list);
+            _listMeta.Edit_List_UObj(list);
+        }
+
+        public string NeedAttention()
+        {
+            if (pegi.NeedsAttention(list, out var message, "Sounds", canBeNull: false)) 
+            {
+                return message;
+            }
+
+            return null;
         }
         #endregion
     }

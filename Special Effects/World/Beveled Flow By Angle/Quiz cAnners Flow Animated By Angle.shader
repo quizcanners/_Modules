@@ -29,7 +29,7 @@ Shader "Quiz cAnners/Geometry/Flow Animated By Angle"
 				#include "Lighting.cginc"
 				#include "UnityCG.cginc"
 				#include "AutoLight.cginc"
-				#include "Assets/Playtime-Painter/Shaders/quizcanners_built_in.cginc"
+				#include "Assets/The-Fire-Below/Common/Shaders/quizcanners_built_in.cginc"
 
 				#pragma shader_feature_local  ___ _BUMP_NONE  _BUMP_COMBINED 
 
@@ -38,7 +38,7 @@ Shader "Quiz cAnners/Geometry/Flow Animated By Angle"
 				float4 _MainTex_ST;
 				sampler2D _Map;
 				float4 _Map_ST;
-				float _Effect_Time;
+				float4 _Effect_Time;
 
 				struct v2f {
 					float4 pos : SV_POSITION;
@@ -101,7 +101,7 @@ Shader "Quiz cAnners/Geometry/Flow Animated By Angle"
 
 			
 
-					float2 uv = i.texcoord - normalize(i.snormal.xz) * abs(i.snormal.y) * _Effect_Time * (0.1) ;
+					float2 uv = i.texcoord - normalize(i.snormal.xz) * abs(i.snormal.y) * _Effect_Time.x * (0.1) ;
 
 				
 
@@ -113,7 +113,7 @@ Shader "Quiz cAnners/Geometry/Flow Animated By Angle"
 					float edgeColorVisibility = smoothstep(0.9, 1, i.vcol.a) * weight;
 
 
-					float2 uvTwist = i.texcoord - i.normal.xz * sdGyroid(float3(i.normal.x, _Effect_Time, i.normal.z)); //i.normal.xz * abs(i.normal.y) * _Effect_Time * 0.1;
+					float2 uvTwist = i.texcoord - i.normal.xz * sdGyroid(float3(i.normal.x, _Effect_Time.x, i.normal.z)); //i.normal.xz * abs(i.normal.y) * _Effect_Time * 0.1;
 
 					float wTwist = min(1, length(fwidth(uvTwist)) * 250);
 

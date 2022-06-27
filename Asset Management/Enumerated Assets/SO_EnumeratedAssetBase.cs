@@ -51,7 +51,7 @@ namespace QuizCanners.IsItGame
     }
 
     [Serializable]
-    public class EnumeratedObject : IPEGI_ListInspect, IGotReadOnlyName
+    public class EnumeratedObject : IPEGI_ListInspect
     {
         [SerializeField] private string nameForInspector = "";
         public Object value;
@@ -75,7 +75,7 @@ namespace QuizCanners.IsItGame
             pegi.Edit(ref value, inspectedObjectType);
         }
 
-        public string GetReadOnlyName() => nameForInspector + " " + (value ? value.name : ("No " + inspectedObjectType));
+        public override string ToString() => nameForInspector + " " + (value ? value.name : ("No " + inspectedObjectType));
 
         #endregion
     }

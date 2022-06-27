@@ -4,7 +4,7 @@ using QuizCanners.Inspect;
 
 namespace QuizCanners.IsItGame
 {
-    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_GameController.PROJECT_NAME + "/Managers/Audio/" + FILE_NAME)]
+    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_GameController.PROJECT_NAME + "/Audio/" + FILE_NAME)]
 
     public class SO_Music_EnumeratedCollection : EnumeratedAssetListsBase<Game.Enums.Music, SO_Music_ClipData>
     {

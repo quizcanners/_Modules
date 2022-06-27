@@ -10,9 +10,17 @@ namespace QuizCanners.TinyECS
         int Index { get; }
         int Version { get; }
 
-        bool HasComponent<T>() where T : struct, IComponentData;
-        void AddComponent<T>() where T : struct, IComponentData;
-        void InspectComponent<T>() where T : struct, IComponentData;
+        public bool IsAlive { get; }
+
+        bool HasComponent<T>() where T : struct;
+        IEntity AddComponent<T>() where T : struct;
+        IEntity AddComponent<T>(SystemActionR<T> onCreate) where T : struct;
+        void RemoveComponent<T>() where T : struct;
+        void SetComponent<T>(T data) where T : struct;
+        bool TryGetComponent<T>(out T component) where T : struct;
+        T GetOrCreateComponent<T>() where T : struct;
+
+        void InspectComponent<T>() where T : struct;
         public void Destroy();
         public ITinyECSworld WorldLink { get; }
     }
@@ -29,30 +37,50 @@ namespace QuizCanners.TinyECS
 
             public bool IsAlive => World.IsAlive(this);
 
-            public bool HasComponent<T>() where T : struct, IComponentData
+            public bool HasComponent<T>() where T : struct
                 => World.HasComponent<T>(this);
 
-            public void AddComponent<T>() where T : struct, IComponentData
-                => World.AddComponent<T>(this);
+            public IEntity AddComponent<T>() where T : struct
+            {
+                World.AddComponent<T>(this);
+                return this;
+            }
 
-            public void AddComponent<T>(SystemActionR<T> onCreate) where T : struct, IComponentData
-                => World.AddComponent(this, onCreate);
+            public IEntity AddComponent<T>(SystemActionR<T> onCreate) where T : struct
+            {
+                World.AddComponent(this, onCreate);
+                return this;
+            }
 
-            public void RemoveComponent<T>() where T : struct, IComponentData
+            public void RemoveComponent<T>() where T : struct
                 => World.RemoveComponent<T>(this);
 
-            public T GetComponent<T>() where T : struct, IComponentData
-               => World.GetComponent<T>(this);
+            public T GetComponent<T>() where T : struct
+            {
+#if UNITY_EDITOR
+                if (World == null) 
+                {
+                    Debug.LogError("World {0} is null".F(typeof(W)));
+                    return default;
+                }
+#endif
+
+                return World.GetComponent<T>(this);
+            }
+
+            public void SetComponent<T>(T data) where T : struct => World.SetComponent(this, data);
+
+            public T GetOrCreateComponent<T>() where T : struct => World.GetOrCreateComponent<T>(this);
 
             public void Destroy() => World.Destroy(this);
 
-            public bool TryGetComponent<T>(out T component) where T : struct, IComponentData
+            public bool TryGetComponent<T>(out T component) where T : struct
                 => World.TryGetComponent(this, out component);
 
-            internal bool TryGetComponentIndex<T>(out ComponentIndex index) where T : struct, IComponentData
+            internal bool TryGetComponentIndex<T>(out ComponentIndex index) where T : struct
                 => World.TryGetComponentIndex<T>(this, out index);
 
-            public ITinyECSworld WorldLink => World != null ? World.link : null;
+            public ITinyECSworld WorldLink => World?.link;
 
             private World<W> World => WorldSingleton<W>.instance;
 
@@ -80,26 +108,46 @@ namespace QuizCanners.TinyECS
                     return;
                 }
 
+                if (!IsAlive) 
+                {
+                    "Entity is Disposed".PegiLabel().Nl();
+                    return;
+                }
+
                 world.Inspect(this);
 
                 if (World.componentListsForEntity.TryGetValue(Index, out EntityComponentsList components))
                     pegi.Nested_Inspect(ref components).Nl();
             }
                
-            public void InspectComponent<T>() where T : struct, IComponentData
+            public void InspectComponent<T>() where T : struct
             {
+
+                if (!IsAlive)
+                {
+                    return;
+                }
+
                 var has = HasComponent<T>();
+
                 if (has)
                 {
                     if (Icon.Delete.Click())
                         RemoveComponent<T>();
-
-                    var cmp = GetComponent<T>() as IPEGI_ListInspect;
-
-                    if (cmp != null)
-                        cmp.InspectInList_Nested();
                     else
-                        typeof(T).ToPegiStringType().PegiLabel().Write();
+                    {
+                        var change = pegi.ChangeTrackStart();
+                     
+                        IPEGI_ListInspect cmp = GetComponent<T>() as IPEGI_ListInspect;
+
+                        if (cmp != null)
+                            pegi.Inspect_AsInList_Value(ref cmp);
+                        else
+                            typeof(T).ToPegiStringType().PegiLabel().Write();
+
+                        if (change)
+                            SetComponent((T)cmp);
+                    }
                 }
 
                 if (!has)
@@ -132,6 +180,8 @@ namespace QuizCanners.TinyECS
 
 
             public string NameForInspector { get => World.GetName(this); set => World.SetName(this, value); }
+
+           
 
             #endregion
         }

@@ -22,7 +22,7 @@ namespace QuizCanners.SpecialEffects
         [SerializeField] protected Shader zoomOutShader;
 
         [Header("Setings:")]
-        [SerializeField] private GrabMethod grabMethod = GrabMethod.ScreenCapture;
+        [SerializeField] private GrabMethod grabMethod = GrabMethod.RenderFromCamera;
         private const int MAX_BLUR_FACTOR = 50;
         [SerializeField] protected LogicWrappers.CountUpToMax screenGrabBlurCounter = new LogicWrappers.CountUpToMax(10);
         [SerializeField] private LogicWrappers.CountUpToMax backgroundBlurCounter = new LogicWrappers.CountUpToMax(10);
@@ -75,8 +75,8 @@ namespace QuizCanners.SpecialEffects
                 BlitScreenToBackground();
             }
 
-
-            step = BlurStep.Requested;
+            if (step != BlurStep.ReturnedFromCamera)
+                step = BlurStep.Requested;
         }
 
         public void InvalidateBackground()
@@ -320,7 +320,6 @@ namespace QuizCanners.SpecialEffects
                 pegi.FullWindow.DocumentationClickOpen(() =>
                 {
                     "Screen Grab captures the final result, but is flipped upside-down on some versions of Unity".PegiLabel().Write();
-                    return false;
                 });
 
                 pegi.Nl();
@@ -329,12 +328,6 @@ namespace QuizCanners.SpecialEffects
                 pegi.Nested_Inspect(screenGrabBlurCounter).Nl();
                 "Background Blur".PegiLabel().Nl();
                 pegi.Nested_Inspect(backgroundBlurCounter).Nl();
-                pegi.FullWindow.DocumentationClickOpen(() => "For how many frames the Blur operation will be executed.");
-
-                pegi.Nl();
-
-                pegi.FullWindow.DocumentationClickOpen(() => "If you plan to take a screen shot while screen shot is already on the screen, you will to enable this option" +
-                                                                "as same texture can't be read from and written to at the same time");
                 pegi.Nl();
             }
 
@@ -377,7 +370,7 @@ namespace QuizCanners.SpecialEffects
                         }
                         else
                         {
-                            "{0} Is using {1}".F(tex.GetReadOnlyName(), tex.GlobalValue.name).PegiLabel().Nl();
+                            "{0} Is using {1}".F(tex.ToString(), tex.GlobalValue.name).PegiLabel().Nl();
                             // tex.GlobalValue.draw("textire", 256).nl();
                         }
                     }
@@ -397,6 +390,21 @@ namespace QuizCanners.SpecialEffects
             }
 
         }
+
+        public override string NeedAttention()
+        {
+            if (!MyCamera)
+                return "No Main Camera";
+
+            if (!copyShader) return "{0} is Missing".F(nameof(copyShader));
+            if (!copyDownscale) return "{0} is Missing".F(nameof(copyDownscale));
+            if (!blurShader) return "{0} is Missing".F(nameof(blurShader));
+            if (!washAwayShader) return "{0} is Missing".F(nameof(washAwayShader));
+            if (!zoomOutShader) return "{0} is Missing".F(nameof(zoomOutShader));
+
+            return base.NeedAttention();
+        }
+
         #endregion
 
         void Reset()

@@ -21,12 +21,12 @@ namespace QuizCanners.IsItGame.UI
         [SerializeField] private RectTransform _root;
         [SerializeField] private RectTransform _raycastBlockObject;
         [SerializeField] private List<CachedView> _cachedViews = new();
-        [Serializable] public struct CachedView : IPEGI_ListInspect, IGotReadOnlyName
+        [Serializable] public struct CachedView : IPEGI_ListInspect
         {
             public Game.Enums.View ViewEnum;
             public GameObject Instance;
 
-            public string GetReadOnlyName() => ViewEnum.ToString();
+            public override string ToString() => ViewEnum.ToString();
 
             public void InspectInList(ref int edited, int index)
             {

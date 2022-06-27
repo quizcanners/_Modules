@@ -115,7 +115,7 @@ namespace QuizCanners.IsItGame.Triggers
                     break;
                 case 1:
                     if (_conditions.Count == 1)
-                        "{0}: {1}".F(_key, _conditions[0].GetReadOnlyName()).PegiLabel().Write();
+                        "{0}: {1}".F(_key, _conditions[0].ToString()).PegiLabel().Write();
                     else goto default;
                     break;
                 default:

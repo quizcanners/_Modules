@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace QuizCanners.IsItGame
 {
-    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_GameController.PROJECT_NAME + "/Managers/" + FILE_NAME)]
+    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_GameController.PROJECT_NAME + "/" + FILE_NAME)]
     public class SO_UiViewEnumerated : EnumeratedAssetReferences<Game.Enums.View, GameObject>
     {
         public const string FILE_NAME = "Enumerated Views";

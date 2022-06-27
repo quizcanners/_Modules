@@ -2,14 +2,16 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Quiz cAnners Outline Animation
   m_Shader: {fileID: 4800000, guid: 8e42badbec5da2e4fb3700d5427cad8a, type: 3}
-  m_ShaderKeywords: SPRITE_IS_RED
+  m_ValidKeywords:
+  - SPRITE_IS_RED
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -75,6 +77,7 @@ Material:
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
+    - _Speed: 3.79
     - _SrcBlend: 1
     - _Stencil: 0
     - _StencilComp: 8
@@ -83,7 +86,9 @@ Material:
     - _StencilWriteMask: 255
     - _UVSec: 0
     - _UseRedSprite: 1
+    - _Width: 0.89
     - _ZWrite: 1
+    - debug: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

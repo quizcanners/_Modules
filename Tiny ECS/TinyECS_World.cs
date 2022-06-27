@@ -1,26 +1,26 @@
 using QuizCanners.Inspect;
 using QuizCanners.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace QuizCanners.TinyECS
 {
-    public partial class World<W> : IPEGI, IGotReadOnlyName, IGotCount where W : ITinyECSworld
+    public partial class World<W> : IPEGI, IGotCount where W : ITinyECSworld
     {
         internal EntityArray allEntities = new();
         internal ComponentArraysDictionary allComponents = new();
 
         internal EntityComponentsList[] componentListsForEntity = new EntityComponentsList[1];
-        internal Dictionary<Type, int> componentFlagArray = new Dictionary<Type, int>();
-        internal byte latestComponentFlag { get; private set; } = 1;
+        internal Dictionary<Type, int> componentFlagArray = new();
+        internal byte LatestComponentFlag { get; private set; } = 1;
 
         [Header("For Inspector:")]
         [SerializeField] private string[] _entityNames;
         internal ITinyECSworld link;
 
-
-        internal ComponentArrayGenric<T> GetComponentDatas<T>() where T : struct, IComponentData
+        internal ComponentArrayGenric<T> GetComponentDatas<T>() where T : struct
         {
             var flag = GetFlag<T>();
 
@@ -63,39 +63,39 @@ namespace QuizCanners.TinyECS
             allComponents = new ComponentArraysDictionary();
             componentListsForEntity = new EntityComponentsList[1];
             componentFlagArray = new Dictionary<Type, int>();
-            latestComponentFlag = 1;
+            LatestComponentFlag = 1;
             _entityNames = null;
         }
 
-        internal int GetFlag<T>() where T : struct, IComponentData => GetFlag(typeof(T));
+        internal int GetFlag<T>() where T : struct => GetFlag(typeof(T));
 
         internal int GetFlag(Type type)
         {
             if (!componentFlagArray.TryGetValue(type, out var flag))
             {
-                flag = 1 << latestComponentFlag;
-                latestComponentFlag++;
+                flag = 1 << LatestComponentFlag;
+                LatestComponentFlag++;
                 componentFlagArray[type] = flag;
             }
 
             return flag;
         }
 
-        internal void AddComponent<T>(Entity entity) where T : struct, IComponentData
+        internal void AddComponent<T>(Entity entity) where T : struct
         {
             EntityComponentsList list = this[entity];
             list.AddComponent<T>();
             this[entity] = list;
         }
 
-        internal void AddComponent<T>(Entity entity, SystemActionR<T> onCreate) where T : struct, IComponentData
+        internal void AddComponent<T>(Entity entity, SystemActionR<T> onCreate) where T : struct
         {
-            EntityComponentsList list = this[entity];
-            list.AddComponent(onCreate);
-            this[entity] = list;
+            EntityComponentsList entityComponents = this[entity];
+            entityComponents.AddComponent(onCreate);
+            this[entity] = entityComponents;
         }
 
-        internal void RemoveComponent<T>(Entity entity) where T : struct, IComponentData
+        internal void RemoveComponent<T>(Entity entity) where T : struct
         {
             if (!HasComponent<T>(entity))
             {
@@ -125,7 +125,22 @@ namespace QuizCanners.TinyECS
                 componentListsForEntity[entity.Index] = value;
             }
         }
-        internal T GetComponent<T>(Entity entity) where T : struct, IComponentData
+
+        internal T GetOrCreateComponent<T>(Entity entity) where T : struct
+        {
+            EntityComponentsList componentIndexes = this[entity];
+            if (componentIndexes.TryGet<T>(out var componentIndex))
+            {
+                ComponentCollectionBase componentInstances = allComponents[GetFlag<T>()];
+                return (T)componentInstances.GetComponentObject(componentIndex);
+            }
+
+            var ind = componentIndexes.AddComponent<T>();
+            this[entity] = componentIndexes;
+            return (T)allComponents[GetFlag<T>()].GetComponentObject(componentIndex);
+        }
+
+        internal T GetComponent<T>(Entity entity) where T : struct
         {
             EntityComponentsList cmps = componentListsForEntity[entity.Index];
             cmps.TryGet<T>(out var index); 
@@ -133,12 +148,26 @@ namespace QuizCanners.TinyECS
             return (T)byType.GetComponentObject(index);
         }
 
-        internal bool TryGetComponent<T>(Entity entity, out T component) where T : struct, IComponentData
+        internal void SetComponent<T>(Entity entity, T componentData) where T : struct 
+        {
+            EntityComponentsList entityComponents = this[entity];
+            ComponentArrayGenric<T> allComponents = GetComponentDatas<T>();
+            if (entityComponents.TryGet<T>(out var index)) 
+            {
+                allComponents[index] = componentData;
+            } else 
+            {
+                entityComponents.AddComponent(componentData);
+                this[entity] = entityComponents;
+            }
+        }
+
+        internal bool TryGetComponent<T>(Entity entity, out T component) where T : struct
         {
             EntityComponentsList cmps = componentListsForEntity[entity.Index];
             if (!cmps.TryGet<T>(out var index))
             {
-                component = default(T);
+                component = default;
                 return false;
             }
 
@@ -147,13 +176,13 @@ namespace QuizCanners.TinyECS
             return true;
         }
 
-        internal bool TryGetComponentIndex<T>(Entity entity, out ComponentIndex component) where T : struct, IComponentData
+        internal bool TryGetComponentIndex<T>(Entity entity, out ComponentIndex component) where T : struct
         {
             EntityComponentsList cmps = componentListsForEntity[entity.Index];
             return cmps.TryGet<T>(out component);
         }
 
-        internal bool HasComponent<T>(Entity entity) where T : struct, IComponentData
+        internal bool HasComponent<T>(Entity entity) where T : struct
         {
             if (componentListsForEntity.Length > entity.Index)
                 return componentListsForEntity[entity.Index].HasComponent<T>();
@@ -220,29 +249,14 @@ namespace QuizCanners.TinyECS
             }
         }
 
-        public string GetReadOnlyName() => "{0} [{1} x {2}]".F(link.WorldName, allEntities.GetValidatedCount(), CountAllComponents());
+        public override string ToString() => "{0} [{1} x {2}]".F(link.WorldName, allEntities.GetValidatedCount(), CountAllComponents());
 
         public int GetCount() => allEntities.GetValidatedCount();
 
         #endregion
 
 
-        [Serializable]
-        internal class EntityArray : ValidatabeArrayGeneric<Entity>
-        {
-            public override  void TryDestroyFromInspectro(int index) =>
-                WorldSingleton<W>.instance.Destroy(_array[index]);
-            
-            protected override Entity Revalidate(int index)
-            {
-                var ent = _array[index];
-                ent.Version++;
-                ent.Index = index;
-                _array[index] = ent;
-                return ent;
-            }
-        }
-
+  
 
     }
 }

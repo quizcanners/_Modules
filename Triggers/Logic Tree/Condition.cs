@@ -80,8 +80,9 @@ namespace QuizCanners.IsItGame.Triggers
 
         #region Inspect
 
-        public override string GetReadOnlyName() {
-                var name = "If {0} {1} ".F(base.GetReadOnlyName(), type.GetName()//, Trigger.Usage.GetConditionValueName(this)
+        public override string ToString()
+        {
+                var name = "If {0} {1} ".F(base.ToString(), type.GetName()//, Trigger.Usage.GetConditionValueName(this)
                     );
                 return name;
         }

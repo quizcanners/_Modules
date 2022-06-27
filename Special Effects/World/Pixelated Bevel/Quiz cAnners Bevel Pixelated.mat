@@ -2,14 +2,17 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Quiz cAnners Bevel Pixelated
   m_Shader: {fileID: 4800000, guid: 0a09a029194b28440b8800738a5266dc, type: 3}
-  m_ShaderKeywords: _BUMP_COMBINED _NORMALMAP
+  m_ValidKeywords:
+  - _BUMP_COMBINED
+  m_InvalidKeywords:
+  - _NORMALMAP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
@@ -40,7 +43,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 35c200f47dffd51449fbe2275ec6f984, type: 3}
+        m_Texture: {fileID: 2800000, guid: 4412c84e0796ef44a9b9beda1425fe64, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Map:

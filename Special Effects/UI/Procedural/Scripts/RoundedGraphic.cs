@@ -6,7 +6,7 @@ using QuizCanners.Migration;
 
 namespace QuizCanners.SpecialEffects
 {
-    [ExecuteAlways]
+    //[ExecuteAlways]
     public partial class RoundedGraphic : Image, ICfg
     {
 
@@ -163,7 +163,6 @@ namespace QuizCanners.SpecialEffects
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
-
             if (!gameObject.activeInHierarchy)
             {
                 if (!QcDebug.IsRelease && Application.isEditor)

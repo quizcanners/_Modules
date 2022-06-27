@@ -28,7 +28,7 @@
 				#include "Lighting.cginc"
 				#include "UnityCG.cginc"
 				#include "AutoLight.cginc"
-				#include "Assets/Playtime-Painter/Shaders/quizcanners_built_in.cginc"
+				#include "Assets/The-Fire-Below/Common/Shaders/quizcanners_built_in.cginc"
 
 				#pragma shader_feature_local  _BUMP_NONE  _BUMP_REGULAR _BUMP_COMBINED 
 
@@ -89,21 +89,12 @@
 
 					float2 uv = TRANSFORM_TEX(i.texcoord, _MainTex);
 
-					float2 perfTex = (floor(i.texcoord.xy*_MainTex_TexelSize.zw) + 0.5) * _MainTex_TexelSize.xy;
-					float2 off = (i.texcoord.xy - perfTex);
-					float2 diff = (abs(off) * _MainTex_TexelSize.zw);
-
-					float sharpness = saturate(1 - fwidth(uv * _MainTex_TexelSize.zw));
-					
-					sharpness = sharpness * sharpness * 12;
-
-					//return sharpness;
-
-					float2 edge = saturate((diff * 2 - 1)*sharpness + 1);
-					perfTex += off * edge;
-					//float2 offset = (abs(off) * _MainTex_TexelSize.z);
-					//uv = diff;
-					//uv += offset;
+					float2 perfTex = (floor(uv * _MainTex_TexelSize.zw) + 0.5) * _MainTex_TexelSize.xy;
+					float2 off = (uv - perfTex);
+					float wigth = length(fwidth(uv));
+					float size = 0.01 / wigth;
+					off = off * saturate((abs(off) * _MainTex_TexelSize.zw) * size * 2 - (size - 1));
+					perfTex  += off;
 
 
 					float4 col = tex2D(_MainTex, perfTex);

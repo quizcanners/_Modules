@@ -4,9 +4,11 @@
 		[PerRendererData]
 		_MainTex("Sprite Texture", 2D) = "white" {}
 		_Details("Details Texture", 2D) = "gray" {}
+		_OverrideMask("Override Mask", 2D) = "white" {}
 	
-		_Grey("Grey", Range(0,1)) = 0.5
-		_Visibility("Visibility", Range(0,3)) = 0.2
+		_Brightness("Brightness", Range(-1,1)) = 0.5
+		_Visibility("Visibility", Range(0,1)) = 0.2
+		_Override("Override", Range(0,1)) = 0.2
 
 		_StencilComp("Stencil Comparison", Float) = 8
 		_Stencil("Stencil ID", Float) = 0
@@ -67,13 +69,14 @@
 			};
 
 
-			uniform float _Grey;
+			uniform float _Brightness;
 			uniform float _Visibility;
 			uniform sampler2D _MainTex;
-			uniform sampler2D _Details;
+
 			uniform float4 _ClipRect;
 			uniform float4 _MainTex_TexelSize;
 			uniform float4 _Details_TexelSize;
+			uniform float _Override;
 
 			v2f vert(appdata_full v)
 			{
@@ -89,15 +92,26 @@
 				return o;
 			}
 
+			uniform sampler2D _Details;
+			uniform float4 _Details_ST;
+			sampler2D _OverrideMask;
+			uniform float4 _OverrideMask_ST;
+
 			float4 frag(v2f o) : SV_Target {
 
 				o.screenPos.xy = o.screenPos.xy / o.screenPos.w * _ScreenParams.xy * _Details_TexelSize.xy;
 
-				float4 details = tex2Dlod(_Details, float4(o.screenPos.xy ,0,0)) ;
+				float2 screenUv = o.screenPos.xy * _Details_ST.xy;
+
+				float4 details = tex2Dlod(_Details, float4(o.screenPos.xy * _Details_ST.xy ,0,0)) ;
+
+				float4 overrideMask = tex2Dlod(_OverrideMask, float4(o.screenPos.xy * _OverrideMask_ST.xy ,0,0)) ;
 
 				float4 col = tex2D(_MainTex, o.texcoord.xy)* o.color;
 
-				col.rgb *=  1 + (details.rgb - _Grey)*_Visibility;
+				col.rgb *= lerp(1, details.rgb * (1+_Brightness), _Visibility);
+
+				col.rgb = lerp(col.rgb, details.rgb, _Override * overrideMask);
 
 				#ifdef UNITY_UI_CLIP_RECT
 				col.a *= UnityGet2DClipping(o.worldPosition.xy, _ClipRect);

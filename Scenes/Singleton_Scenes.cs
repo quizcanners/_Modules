@@ -65,7 +65,7 @@ namespace QuizCanners.IsItGame
             if (Icon.Enter.Click())
                 edited = ind;
 
-            this.ClickHighlight();
+            pegi.ClickHighlight(this);
 
         }
 

@@ -82,7 +82,7 @@ Shader "Quiz cAnners/UI/GriddedPixels"{
 			float4 _MainTex_ST;
 			float4 _qcPp_MousePosition;
 			float4 _qcPp_MouseDynamics;
-			float _Effect_Time;
+			float4 _Effect_Time;
 
 
 			v2f vert(appdata_t v)
@@ -135,7 +135,7 @@ Shader "Quiz cAnners/UI/GriddedPixels"{
 
 					float d = length(fromMouse);
 
-					color.a *= smoothstep(0.2, 0, d + sin(d*50 - _Effect_Time*50)*0.02) * _qcPp_MousePosition.z;
+					color.a *= smoothstep(0.2, 0, d + sin(d*50 - _Effect_Time.x*50)*0.02) * _qcPp_MousePosition.z;
 				#endif
 
 				return color;

@@ -1,6 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using QuizCanners.Utils;
+using System;
+using System.Diagnostics;
 
 namespace QuizCanners.TinyECS
 {
@@ -22,8 +22,12 @@ namespace QuizCanners.TinyECS
         internal static World<T> GetInstance(T controller)
         {
             if (instance == null)
-                instance = new World<T>(controller);
+            {
+                if (typeof(T) == typeof(ITinyECSworld))
+                    throw new ArgumentException("Shouldn't be using {0} as a World Link. Use {1}".F(nameof(ITinyECSworld), controller.GetType().ToPegiStringType()));
 
+                instance = new World<T>(controller);
+            }
             return instance;
         }
     }

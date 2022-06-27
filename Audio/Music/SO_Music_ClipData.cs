@@ -7,8 +7,8 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace QuizCanners.IsItGame
 {
-    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_GameController.PROJECT_NAME + "/Managers/Audio/" + FILE_NAME)]
-    public class SO_Music_ClipData : ScriptableObject, IPEGI_ListInspect
+    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_GameController.PROJECT_NAME + "/Audio/" + FILE_NAME)]
+    public class SO_Music_ClipData : ScriptableObject, IPEGI_ListInspect, IPEGI, INeedAttention
     {
         public const string FILE_NAME = "Song";
 
@@ -18,23 +18,26 @@ namespace QuizCanners.IsItGame
 
         [NonSerialized] private AsyncOperationHandle<AudioClip> _handle;
         [NonSerialized] private AudioClip clip;
+        [NonSerialized] private bool failedToLoad;
 
-        public AudioClip TryGetClip() => clip;
+        public AudioClip GetIfCached() => clip;
 
         public void Release() => Addressables.Release(_handle);
 
+        public bool GotReference() => Reference != null && Reference.RuntimeKeyIsValid();
+
         public IEnumerator GetClipAsync(Action<AudioClip> onComplete = null)
         {
-            if (Reference == null)
+            if (failedToLoad || !GotReference())
             {
-                onComplete?.Invoke(clip);
+                Finalize();
                 yield break;
             }
 
             if (_handle.IsValid())
             {
                 yield return _handle;
-                onComplete?.Invoke(_handle.Result);
+                Finalize(_handle.Result);
                 yield break;
             }
 
@@ -44,17 +47,40 @@ namespace QuizCanners.IsItGame
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                Debug.LogWarning(ex);
+                failedToLoad = true;
+                Finalize();
+                yield break;
             }
 
             _handle.Completed += action =>
             {
                 if (action.IsDone)
                 {
-                    clip = action.Result;
-                    onComplete?.Invoke(action.Result);
+                    Finalize(action.Result);
+                } else 
+                {
+                    failedToLoad = true;
+                    Finalize();
                 }
             };
+
+            void Finalize(AudioClip newClip = null)
+            {
+                if (newClip)
+                {
+                    clip = newClip;
+                }
+
+                try
+                {
+                    onComplete?.Invoke(clip);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogException(ex);
+                }
+            }
 
             yield return _handle;
         }
@@ -62,12 +88,36 @@ namespace QuizCanners.IsItGame
         #region Inspector
         public void InspectInList(ref int edited, int ind)
         {
+            if (!GotReference())
+                Icon.InActive.Draw();
 
-            var enm = (Game.Enums.Music)ind;
-            enm.ToString().PegiLabel().Write();
 
-            if (Icon.Play.Click())
-                enm.Play();
+            name.PegiLabel(90).Edit_Property(() => Reference, this);
+
+            //   var enm = (Game.Enums.Music)ind;
+            //  enm.ToString().PegiLabel().Write();
+
+            // if (Icon.Play.Click())
+            //   enm.Play();
+            pegi.ClickHighlight(this);
+
+            if (Icon.Enter.Click())
+                edited = ind;
+        }
+
+        public void Inspect()
+        {
+            "Clip".PegiLabel(40).Edit_Property(() => Reference, this).Nl();
+            "Always From Start".PegiLabel().ToggleIcon(ref AlwaysStartFromBeginning).Nl();
+            "Volume".PegiLabel(50).Edit_01(ref Volume).Nl();
+        }
+
+        public string NeedAttention()
+        {
+            if (!GotReference())
+                return "No Clip";
+
+            return null;
 
         }
         #endregion

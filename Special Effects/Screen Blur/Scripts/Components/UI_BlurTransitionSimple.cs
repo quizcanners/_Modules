@@ -111,7 +111,6 @@ namespace QuizCanners.SpecialEffects
             if (skipAnimation)
             {
                 _blurImage.TrySetAlpha(0);
-                enabled = false;
             }
             else
             {

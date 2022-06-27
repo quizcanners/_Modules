@@ -85,7 +85,7 @@ Shader "Quiz cAnners/UI/Hologram"
 			float4 _MainTex_ST;
 			float4 _ProjTexPos;
 			float _Aboration;
-			float _Effect_Time;
+			float4 _Effect_Time;
 		
 
 			v2f vert(appdata_t v)
@@ -128,7 +128,7 @@ Shader "Quiz cAnners/UI/Hologram"
 
 				float2 rayUV = IN.screenPos.xy;
 
-				float lines = (sin((linesUV.y*4 - _Effect_Time) * 100) + 1)*0.5;
+				float lines = (sin((linesUV.y*4 - _Effect_Time.x) * 100) + 1)*0.5;
 
 				lines *= lines;
 

@@ -44,6 +44,8 @@ namespace QuizCanners.IsItGame
             {
                 string name = Enum.ToObject(inspectedEnum, ind).ToString();
 
+                name.PegiLabel().Nl();
+
                /* if (Name.IsNullOrEmpty())
                 {
                     "Set name".PegiLabel().Click(() => Name = name);
@@ -53,7 +55,7 @@ namespace QuizCanners.IsItGame
                    
                 Name.PegiLabel(90).Write();*/
 
-                if (DirectReference && Reference.AssetGUID.IsNullOrEmpty() == false && Icon.Clear.Click())
+                if (DirectReference && Reference!= null && Reference.AssetGUID.IsNullOrEmpty() == false && Icon.Clear.Click("Clear Reference"))
                     Reference = null;
                 
                 if (!DirectReference || Reference.IsValid())
@@ -65,6 +67,18 @@ namespace QuizCanners.IsItGame
                 }
 
                 "Assets".PegiLabel(60).Edit(ref DirectReference);
+                pegi.Line();
+            }
+
+            public override string ToString()
+            {
+                if (DirectReference)
+                    return DirectReference.GetNameForInspector();
+
+                if (Reference.IsValid())
+                    return "Addressable";
+
+                return "Empty";
             }
 
             #endregion

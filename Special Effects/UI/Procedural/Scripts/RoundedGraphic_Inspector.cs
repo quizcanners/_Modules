@@ -122,21 +122,21 @@ namespace QuizCanners.SpecialEffects
                         gotPixPerfTag = !pixPfTag.IsNullOrEmpty();
 
                         if (!gotPixPerfTag)
-                            "{0} doesn't have {1} tag".F(shad.name, ShaderTags.PixelPerfectUi.GetReadOnlyName()).PegiLabel().WriteWarning();
+                            "{0} doesn't have {1} tag".F(shad.name, ShaderTags.PixelPerfectUi.ToString()).PegiLabel().WriteWarning();
                         else
                         {
 
                             mayBeDefaultMaterial = false;
 
-                            expectedScreenPosition = pixPfTag.Equals(ShaderTags.PixelPerfectUis.Position.GetReadOnlyName());
+                            expectedScreenPosition = pixPfTag.Equals(ShaderTags.PixelPerfectUis.Position.ToString());
 
                             if (!expectedScreenPosition)
                             {
 
-                                expectedAtlasedPosition = pixPfTag.Equals(ShaderTags.PixelPerfectUis.AtlasedPosition.GetReadOnlyName());
+                                expectedAtlasedPosition = pixPfTag.Equals(ShaderTags.PixelPerfectUis.AtlasedPosition.ToString());
 
                                 if (!expectedAtlasedPosition)
-                                    possibleFadePosition = pixPfTag.Equals(ShaderTags.PixelPerfectUis.FadePosition.GetReadOnlyName());
+                                    possibleFadePosition = pixPfTag.Equals(ShaderTags.PixelPerfectUis.FadePosition.ToString());
                             }
 
                             needThirdUv = expectedAtlasedPosition || (possibleFadePosition && feedPositionData);
@@ -265,7 +265,7 @@ namespace QuizCanners.SpecialEffects
                             if (path.IsNullOrEmpty())
                             {
                                 Nl();
-                                "Material is not saved as asset. Click COPY next to it to save as asset. Or Click 'Refresh' to find compatible materials in your assets ".PegiLabel().WriteHint();
+                                "Material is not saved as asset. Click COPY next to it to save as asset. Or Click 'Refresh' to find compatible materials in your assets ".PegiLabel().Write_Hint();
                                 Nl();
                             }
                             else
@@ -275,7 +275,7 @@ namespace QuizCanners.SpecialEffects
                         if (!showingSelection && !mayBeDefaultMaterial)
                         {
                             var n = mat.name;
-                            if ("Rename Material".PegiLabel("Press Enter to finish renaming.", 120).EditDelayed(ref n))
+                            if ("Rename Material".PegiLabel("Press Enter to finish renaming.", 120).Edit_Delayed(ref n))
                                 QcUnity.RenameAsset(mat, n);
                         }
                     }
@@ -305,7 +305,7 @@ namespace QuizCanners.SpecialEffects
                             FullWindow.DocumentationClickOpen(sTip, "Tip from shader tag");
 
                         if (shad)
-                            shad.ClickHighlight();
+                            ClickHighlight(shad);
 
                         if (Icon.Refresh.Click("Refresh compatible Shaders list"))
                             _compatibleShaders = null;
@@ -382,7 +382,7 @@ namespace QuizCanners.SpecialEffects
 
                     var noTag = spriteTag.IsNullOrEmpty();
 
-                    if (noTag || !spriteTag.SameAs(ShaderTags.SpriteRoles.Hide.GetReadOnlyName()))
+                    if (noTag || !spriteTag.SameAs(ShaderTags.SpriteRoles.Hide.ToString()))
                     {
                         if (noTag)
                             spriteTag = "Sprite";

@@ -1,4 +1,4 @@
-Shader "Playtime Painter/UI/Additive"
+Shader "Quiz cAnners/UI/Images/Additive"
 {
     Properties
     {

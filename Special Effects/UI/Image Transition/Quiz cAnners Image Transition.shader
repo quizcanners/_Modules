@@ -3,14 +3,14 @@
 		[PerRendererData] _MainTex("Mask (RGB)", 2D) = "white" {}
 		[NoScaleOffset]_MainTex_Current("First Texture", 2D) = "black" {}
 		[NoScaleOffset]_Next_MainTex("Next Texture", 2D) = "black" {}
-		[NoScaleOffset]_Mask("Mask", 2D) = "white" {}
 		_Transition("Transition", Range(0,1)) = 0
-		[NoScaleOffset]_Overlay("Overlay", 2D) = "black" {}
 		
 	}
 
-	Category{
-		Tags{ 
+	Category
+	{
+		Tags
+		{ 
 			"RenderType" = "Transparent"
 			"PreviewType" = "Plane"
 			"LightMode" = "ForwardBase"
@@ -24,8 +24,10 @@
 		ZTest Off
 		Blend SrcAlpha OneMinusSrcAlpha
 
-		SubShader{
-			Pass{
+		SubShader
+		{
+			Pass
+			{
 
 				CGPROGRAM
 
@@ -35,24 +37,23 @@
 
 				#include "UnityCG.cginc"
 
+				sampler2D _MainTex;
 				sampler2D _MainTex_Current;
 				float4 _MainTex_Current_TexelSize;
 				sampler2D _Next_MainTex;
 				float4 _MainTex_Current_ST;
-				sampler2D _Overlay;
-				sampler2D _Mask;
 
 				float _Transition;
 
-
-				struct v2f {
+				struct v2f 
+				{
 					float4 pos : POSITION;
 					float2 texcoord : TEXCOORD2;
 					float4 color : COLOR;
 				};
 
-
-				v2f vert(appdata_full v) {
+				v2f vert(appdata_full v) 
+				{
 					v2f o;
 
 					o.texcoord = v.texcoord;
@@ -61,39 +62,23 @@
 					return o;
 				}
 
+			    float4 LerpTransparent(float4 col1, float4 col2, float transition)
+				{
+					float4 col;
+                
+					col.rgb = lerp(col1.rgb * col1.a, col2.rgb * col2.a, transition);
+					col.a = lerp(col1.a, col2.a, transition);
+					col.rgb /= col.a + 0.001;
 
-				float4 frag(v2f i) : COLOR{
+					return col;
+				}
 
-					float2 texUV = i.texcoord;
-
-					texUV -= 0.5;
-
-					float len = length(texUV);
-
-					texUV *= 1 + (saturate(1 - i.color.a));
-
-					texUV += 0.5;
-
-					float _Courners = saturate((i.color.a - 0.4) * 2)*0.9;
-					float _Blur = saturate((1 - i.color.a));
-					float4 overlay = tex2D(_Overlay, texUV);
-		
-					float4 mask = tex2D(_Mask, texUV);
-
-					float4 col = tex2Dlod(_MainTex_Current, float4(texUV, 0, 0));
-					float4 col2 = tex2Dlod(_Next_MainTex, float4(texUV, 0, 0));
-
-					float rgbAlpha = col2.a*_Transition;
-					rgbAlpha = saturate(rgbAlpha * 2 / (col.a + rgbAlpha + 0.001));
-					col.a = col2.a * _Transition + col.a * (1 - _Transition);
-					col.rgb = col2.rgb * rgbAlpha + col.rgb * (1 - rgbAlpha);
-
-					col.a *= mask.a;
-
-					col = col * (1 - overlay.a) + overlay * overlay.a;
-
-					col.a *= (1 - _Blur);
-
+				float4 frag(v2f i) : COLOR
+				{
+					float4 col = tex2D(_MainTex_Current,  i.texcoord);
+					float4 col2 = tex2D(_Next_MainTex,  i.texcoord);
+					col = LerpTransparent(col, col2, _Transition);
+					col *= tex2D(_MainTex,  i.texcoord);
 					return saturate(col);
 				}
 				ENDCG
