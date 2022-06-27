@@ -9,7 +9,6 @@ namespace QuizCanners.IsItGame.NodeNotes
 {
     public partial class SO_ConfigBook
     {
-
         public partial class Node : IGotIndex, IGotName, IGotCount, ICfg, IPEGI_ListInspect, IPEGI
         {
             private string _name = "UNNAMED";
@@ -17,7 +16,7 @@ namespace QuizCanners.IsItGame.NodeNotes
             private List<Node> _childNodes = new();
             private ConfigsDictionary configs = new();
 
-            public bool PopulateChainRecursively(Reference reff, NodesChain result) 
+            public bool PopulateChainRecursively(Id reff, NodesChain result) 
             {
                 var token = result.AddAndUse(this);
 
@@ -127,6 +126,7 @@ namespace QuizCanners.IsItGame.NodeNotes
                 _index = book._freeNodeIndex;
                 book._freeNodeIndex++;
                 book.OnNodeTreeChanged();
+
             }
 
             internal Node(SO_ConfigBook book)
@@ -142,7 +142,7 @@ namespace QuizCanners.IsItGame.NodeNotes
 
             #region Inspector
 
-            [NonSerialized] private pegi.CollectionInspectorMeta _collectionMeta;
+            [SerializeField] private pegi.CollectionInspectorMeta _collectionMeta;
             public int GetCount() => _childNodes.Count;
 
             [NonSerialized] private bool _showConfigs;
@@ -164,13 +164,16 @@ namespace QuizCanners.IsItGame.NodeNotes
                         lstCopy.Remove(s);
                     }
                 }
+
+                
             }
 
             public void Inspect(NodesChain myChain) 
             {
                 if (_collectionMeta == null)
+                {
                     _collectionMeta = new pegi.CollectionInspectorMeta(_name, showAddButton: false, allowDeleting: false, showEditListButton: false);
-
+                }
                 pegi.Nl();
 
                 if ("Configurations {0}".F(CfgsCount).PegiLabel().IsConditionally_Entered(canEnter: Mgmt.IsCurrent(this), ref _showConfigs).Nl())
@@ -219,7 +222,7 @@ namespace QuizCanners.IsItGame.NodeNotes
                             if (Icon.Enter.Click() | s.GetNameForInspector().PegiLabel().ClickLabel())
                                 _inspectedService = s.TagForConfig;
 
-                            (s as UnityEngine.Object).ClickHighlight();
+                            pegi.ClickHighlight(s as UnityEngine.Object);
                         }
 
                         pegi.Nl();

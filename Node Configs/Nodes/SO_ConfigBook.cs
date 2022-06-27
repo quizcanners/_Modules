@@ -53,7 +53,7 @@ namespace QuizCanners.IsItGame.NodeNotes
             return _rootNode;
         }
     
-        public NodesChain this[Node.Reference reff]
+        public NodesChain this[Node.Id reff]
         {
             get
             {
@@ -135,13 +135,13 @@ namespace QuizCanners.IsItGame.NodeNotes
             {
                 var tmp = NameForInspector.Replace(KEY_SUFFIX, ""); //name;
 
-                if (pegi.EditDelayed(ref tmp))
+                if (pegi.Edit_Delayed(ref tmp))
                     NameForInspector = tmp + KEY_SUFFIX;
 
                 if (Icon.Enter.Click())
                     edited = ind;
 
-                this.ClickHighlight();
+                pegi.ClickHighlight(this);
             }
         }
 

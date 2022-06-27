@@ -2,14 +2,16 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!21 &2100000
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Quiz cAnners_UI_Blick_Radial
   m_Shader: {fileID: 4800000, guid: 3046c24fc9d2b7f419fb260f03c3a916, type: 3}
-  m_ShaderKeywords: _SHARP_EDGES
+  m_ValidKeywords:
+  - _SHARP_EDGES
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -25,17 +27,17 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _ArcSize: 0.402
+    - _ArcSize: 0.311
     - _ColorMask: 15
     - _Delay: 2.27
     - _Gap: 2.13
-    - _Speed: 2.88
+    - _Speed: 2.47
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
-    - _Thickness: 0.351
+    - _Thickness: 0.371
     - _Thinness: 0.249
     - _Tilt: 0.5
     - sharpEdges: 1

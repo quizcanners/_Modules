@@ -214,7 +214,7 @@ namespace QuizCanners.IsItGame.Triggers.Dialogue
             "Show only one language".PegiLabel().ToggleIcon(ref singleView, true);
             if (singleView)  {
                 LanguageSelector_PEGI();
-                if (pegi.EditBig(ref tmp)) {
+                if (pegi.Edit_Big(ref tmp)) {
                     NameForInspector = tmp;
                     return;
                 }

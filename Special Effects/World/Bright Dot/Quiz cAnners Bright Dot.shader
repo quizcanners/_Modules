@@ -1,12 +1,16 @@
-﻿Shader "Quiz cAnners/Effects/Bright Spot" {
-	Properties{
+﻿Shader "Quiz cAnners/Effects/Bright Spot" 
+{
+	Properties
+	{
 		_Color("Color", Color) = (1,1,1,1)
 		_Hardness("Hardness", Range(0.1,16)) = 1
 		_InvFade("Soft Particles Factor", Range(0.01,3.0)) = 1.0
 	}
 
-	Category{
-		Tags{
+	Category
+	{
+		Tags
+		{
 			"Queue" = "Transparent"
 			"PreviewType" = "Plane"
 			"IgnoreProjector" = "True"
@@ -17,9 +21,10 @@
 		ZWrite Off
 		Blend SrcAlpha One
 
-		SubShader{
-
-			Pass{
+		SubShader
+		{
+			Pass
+			{
 
 				CGPROGRAM
 
@@ -39,13 +44,15 @@
 				sampler2D _CameraDepthTexture;
 				float _InvFade;
 
-				struct v2f {
+				struct v2f 
+				{
 					float4 pos : SV_POSITION;
 					float2 texcoord : TEXCOORD0;
 					float4 screenPos : TEXCOORD1;
 				};
 
-				v2f vert(appdata_full v) {
+				v2f vert(appdata_full v) 
+				{
 					v2f o;
 					UNITY_SETUP_INSTANCE_ID(v);
 
@@ -61,7 +68,6 @@
 
 				float4 frag(v2f i) : COLOR
 				{
-
 					float2 screenUV = i.screenPos.xy / i.screenPos.w;
 
 					float2 off = i.texcoord - 0.5;
@@ -81,11 +87,10 @@
 						col.rgb += (noise.rgb - 0.5) * 0.4 * col.rgb;
 #                   endif
 
-						float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, screenUV);
-						float sceneZ = LinearEyeDepth(UNITY_SAMPLE_DEPTH(depth));
-						float partZ = i.screenPos.z;
-						float fade = smoothstep(0, 1, _InvFade * (sceneZ - partZ));
-
+					float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, screenUV);
+					float sceneZ = LinearEyeDepth(UNITY_SAMPLE_DEPTH(depth));
+					float partZ = i.screenPos.z;
+					float fade = smoothstep(0, 1, _InvFade * (sceneZ - partZ));
 
 					col.rgb *= alpha * fade;
 

@@ -47,7 +47,7 @@ namespace QuizCanners.IsItGame
 
                     if (scrollRect && (scrollRect.vertical || scrollRect.horizontal))
                     {
-                        Game.Enums.SoundEffects.Scratch.PlayOneShot(); 
+                        Game.Enums.UiSoundEffects.Scratch.PlayOneShot(); 
                     }
                 }
             }

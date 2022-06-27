@@ -3,14 +3,19 @@ using QuizCanners.SpecialEffects;
 using QuizCanners.Utils;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace QuizCanners.IsItGame
 {
     public class Singleton_InspectorOnGui : IsItGameServiceBase
     {
         [SerializeField] private List<RectTransform> _InspectorUnderalay;
-        private bool _drawInspectorOnGui;
-        private readonly pegi.GameView.Window _window = new pegi.GameView.Window(upscale: 2.5f);
+        [SerializeField] private Button _button; 
+        [SerializeField] private InspctorMode _mode;
+        [SerializeField] private bool _drawInspectorOnGui;
+        private pegi.GameView.Window _window;
+
+        public enum InspctorMode { Mobile, Desktop }
 
         public bool DrawInspector 
         {
@@ -18,7 +23,7 @@ namespace QuizCanners.IsItGame
             set 
             {
                 _drawInspectorOnGui = value;
-                _InspectorUnderalay.SetActive_List(_drawInspectorOnGui);
+                OnStateChange();
             }
         }
 
@@ -26,7 +31,7 @@ namespace QuizCanners.IsItGame
         {
             if (!DrawInspector) 
             {
-                Utils.Singleton.Try<Singleton_ScreenBlur>(
+                Singleton.Try<Singleton_ScreenBlur>(
                     onFound: s => s.RequestUpdate(() => DrawInspector = true, updateBackground: false), 
                     onFailed: ()=> DrawInspector = true
                     );
@@ -36,32 +41,52 @@ namespace QuizCanners.IsItGame
             }
         }
 
-        protected override void AfterEnable()
+        protected override void OnAfterEnable()
         {
             gameObject.SetActive(QcDebug.ShowDebugOptions);
             DrawInspector = false;
+            OnStateChange();
+        }
+
+        private void OnStateChange() 
+        {
+            _InspectorUnderalay.SetActive_List(_drawInspectorOnGui && _mode == InspctorMode.Mobile);
+            _button.gameObject.SetActive(_mode == InspctorMode.Mobile);
         }
 
         void OnGUI()
         {
-            if (_drawInspectorOnGui)
-            {
-                _window.Render(Singleton.Get<Singleton_GameController>());
+            switch (_mode) {
+                case InspctorMode.Desktop:
+                if (_window == null)
+                    _window = new pegi.GameView.Window(windowWidth: 600, windowHeight: 800);
+                    
+                    break;
+                case InspctorMode.Mobile:
+
+                if (!_drawInspectorOnGui)
+                    return;
+
+                if (_window == null)
+                    _window = new pegi.GameView.Window();
+
+                    break;
             }
 
+            _window.Render(Singleton.Get<Singleton_GameController>());
+            
            /*
              else if (QcDebug.ShowDebugOptions)
             {
                 _window.Render(this);
             }*/
-            else return;
 
             switch (pegi.GameView.LatestEvent)
             {
-                case pegi.LatestInteractionEvent.Click: Game.Enums.SoundEffects.Click.PlayOneShot(); break;
-                case pegi.LatestInteractionEvent.SliderScroll: Game.Enums.SoundEffects.Scratch.PlayOneShot(); break;
-                case pegi.LatestInteractionEvent.Enter: Game.Enums.SoundEffects.Tab.PlayOneShot(); break;
-                case pegi.LatestInteractionEvent.Exit: Game.Enums.SoundEffects.MouseExit.PlayOneShot(); break;
+                case pegi.LatestInteractionEvent.Click: Game.Enums.UiSoundEffects.Click.PlayOneShot(); break;
+                case pegi.LatestInteractionEvent.SliderScroll: Game.Enums.UiSoundEffects.Scratch.PlayOneShot(); break;
+                case pegi.LatestInteractionEvent.Enter: Game.Enums.UiSoundEffects.Tab.PlayOneShot(); break;
+                case pegi.LatestInteractionEvent.Exit: Game.Enums.UiSoundEffects.MouseExit.PlayOneShot(); break;
             }
         }
 
@@ -71,6 +96,19 @@ namespace QuizCanners.IsItGame
             {
                 if ("Show Game View Inspector".PegiLabel().ToggleIcon(ref _drawInspectorOnGui).Nl())
                     DrawInspector = _drawInspectorOnGui;
+            }
+
+            "Mode".PegiLabel(60).Edit_Enum(ref _mode).Nl().OnChanged(()=>
+            {
+                OnStateChange();
+                _window = null;
+            });
+
+            switch (_mode) 
+            {
+                case InspctorMode.Mobile:
+                    "Button".PegiLabel(60).Edit_IfNull(ref _button, gameObject).Nl();
+                    break;
             }
 
             Utils.Singleton.Collector.Inspect_LoadingProgress();

@@ -77,7 +77,7 @@ namespace QuizCanners.IsItGame
             "Priority".PegiLabel(80).Edit(ref _priority).Nl();
 
             if (!_component)
-                "Assign component to know which type to compete with".PegiLabel().WriteHint();
+                "Assign component to know which type to compete with".PegiLabel().Write_Hint();
             else
             {
                 if (!_component.transform.IsChildOf(transform))
@@ -85,7 +85,7 @@ namespace QuizCanners.IsItGame
                 else
                 {
                   
-                    "{0}s with lower priority will be disabled".F(_component.gameObject.name).PegiLabel().WriteHint();
+                    "{0}s with lower priority will be disabled".F(_component.gameObject.name).PegiLabel().Write_Hint();
                     var optimalName = QcSharp.AddSpacesInsteadOfCapitals("{0} Singleton".F(_component.GetType().ToPegiStringType()));
 
                     if (_component.gameObject.name.Equals(optimalName) == false && "Set Name".PegiLabel().Click().Nl())

@@ -3,6 +3,7 @@ using QuizCanners.IsItGame.StateMachine;
 using QuizCanners.IsItGame.UI;
 using QuizCanners.Utils;
 using UnityEngine;
+using static QuizCanners.IsItGame.StateMachine.GameState;
 
 namespace QuizCanners.IsItGame
 {
@@ -12,6 +13,8 @@ namespace QuizCanners.IsItGame
         public const string PROJECT_NAME = "Is It A Game";
 
         public SO_PersistentGameData PersistentProgressData;
+
+        private Gate.Bool _isFocused = new();
 
         void Update()
         {
@@ -23,19 +26,46 @@ namespace QuizCanners.IsItGame
 
         void LateUpdate() => GameState.Machine.ManagedLateUpdate();
 
-        protected override void AfterEnable()
+        protected override void OnAfterEnable()
         {
-            GameState.Machine.ManagedOnEnable();
-
-            if (PersistentProgressData)
-                PersistentProgressData.Load();
+            SetActiveStateInternal(true);
         }
 
         protected override void OnBeforeOnDisableOrEnterPlayMode(bool afterEnableCalled)
         {
-            GameState.Machine.ManagedOnDisable();
-            if (PersistentProgressData)
-                PersistentProgressData.Save();
+         
+        }
+
+        private void SetActiveStateInternal(bool isActive) 
+        {
+            if (_isFocused.TryChange(isActive))
+            {
+                if (!isActive)
+                {
+                    Machine.ManagedOnDisable();
+                    if (PersistentProgressData)
+                        PersistentProgressData.Save();
+                } else 
+                {
+
+                    Machine.ManagedOnEnable();
+
+                    if (PersistentProgressData)
+                        PersistentProgressData.Load();
+                }
+            }
+        }
+
+        void OnApplicationFocus(bool hasFocus)
+        {
+            if (Application.isMobilePlatform)
+                SetActiveStateInternal(hasFocus);
+        }
+
+        void OnApplicationPause(bool pauseStatus)
+        {
+            if (Application.isMobilePlatform)
+                SetActiveStateInternal(!pauseStatus);
         }
 
         void Awake() 
@@ -54,8 +84,10 @@ namespace QuizCanners.IsItGame
             using (context.StartContext())
             {
                 if (!context.IsAnyEntered)
+                {
+                    (_isFocused.CurrentValue ? Icon.Active: Icon.Pause).Draw();
                     "GAME CONTROLLER".PegiLabel(pegi.Styles.ListLabel).Write();
-
+                }
                 pegi.Nl();
 
                 "Modules".PegiLabel().IsEntered().Nl().If_Entered(Singleton.Collector.Inspect);  // Independent
@@ -65,7 +97,7 @@ namespace QuizCanners.IsItGame
 
                 "Persistent Data".PegiLabel().Edit_Enter_Inspect(ref PersistentProgressData).Nl();  // Game Data that changes from run to run
 
-                "Utils".PegiLabel().IsEntered().Nl().If_Entered(QcUtils.InspectAllUtils);
+                "Utils".PegiLabel().Enter_Inspect(QcUtils.InspectAllUtils).Nl();
 
                 if (context.IsAnyEntered == false && Application.isPlaying)
                     Singleton.Try<Singleton_UiView>(s => s.InspectCurrentView(),

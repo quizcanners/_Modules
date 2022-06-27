@@ -83,7 +83,7 @@ namespace QuizCanners.IsItGame.UI
                     if (!LerpUtils.IsLerpingBySpeed(ref _localScale, 0.92f, _speed, unscaledTime: true))
                         _direction = Direction.PressedShakeUp;
 
-                    Game.Enums.SoundEffects.Ice.PlayOneShot(clipVolume: 0.2f);
+                    Game.Enums.UiSoundEffects.Ice.PlayOneShot(clipVolume: 0.2f);
 
                     break;
 
@@ -91,7 +91,7 @@ namespace QuizCanners.IsItGame.UI
                     if (!LerpUtils.IsLerpingBySpeed(ref _localScale, 0.97f, _speed, unscaledTime: true))
                         _direction = Direction.PressedShakeDown;
 
-                    Game.Enums.SoundEffects.Ice.PlayOneShot(clipVolume: 0.2f);
+                    Game.Enums.UiSoundEffects.Ice.PlayOneShot(clipVolume: 0.2f);
 
                     break;
 

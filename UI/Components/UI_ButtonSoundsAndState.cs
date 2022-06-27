@@ -9,7 +9,7 @@ namespace QuizCanners.IsItGame.UI
     public class UI_ButtonSoundsAndState : MonoBehaviour, IPEGI, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
     {
         [SerializeField] protected Button _button;
-        [SerializeField] private Game.Enums.SoundEffects _soundToPlay = Game.Enums.SoundEffects.Click;
+        [SerializeField] private Game.Enums.UiSoundEffects _soundToPlay = Game.Enums.UiSoundEffects.Click;
 
         [Header("Optional")]
         [SerializeField] private UI_ButtonScaleAnimation scaleAnimation;
@@ -63,7 +63,7 @@ namespace QuizCanners.IsItGame.UI
 
             Down = true;
 
-            Game.Enums.SoundEffects.PressDown.PlayOneShot();
+            Game.Enums.UiSoundEffects.PressDown.PlayOneShot();
         }
 
         public virtual void OnPointerUp(PointerEventData eventData)
@@ -93,7 +93,7 @@ namespace QuizCanners.IsItGame.UI
 
             if (Down)
             {
-                Game.Enums.SoundEffects.MouseLeave.PlayOneShot();
+                Game.Enums.UiSoundEffects.MouseLeave.PlayOneShot();
                 Down = false;
                 var vibe = Utils.Singleton.Try<Singleton_DeviceVibration>(x => x.OnNopeVibrate(), logOnServiceMissing: false);
             }

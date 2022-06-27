@@ -22,7 +22,7 @@ namespace QuizCanners.SpecialEffects
             var fo = mat.HasTag(FadeOutTag);
 
             if (fo)
-                "When alpha is one, the graphic will be invisible.".PegiLabel().WriteHint();
+                "When alpha is one, the graphic will be invisible.".PegiLabel().Write_Hint();
 
             pegi.Nl();
 
@@ -35,7 +35,7 @@ namespace QuizCanners.SpecialEffects
             else
             {
                 matTok.Edit(time, "Time").Nl();
-                "It is expected that time Float will be set via script. Parameter name is _CustomTime. ".PegiLabel().WriteHint();
+                "It is expected that time Float will be set via script. Parameter name is _CustomTime. ".PegiLabel().Write_Hint();
                 pegi.Nl();
             }
 

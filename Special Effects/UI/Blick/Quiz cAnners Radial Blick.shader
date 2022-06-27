@@ -14,7 +14,7 @@ Shader "Quiz cAnners/UI/Blick Radial"{
 
 		_Speed("Speed", Range(0,5)) = 1
 		_Thickness("Thickness", Range(0.001,1)) = 0.25
-		_ArcSize("Arc Size", Range(0.001,0.49)) = 0.25
+		_ArcSize("Arc Size", Range(0.23,0.49)) = 0.25
 
 		[Toggle(_SHARP_EDGES)] sharpEdges("Sharp edges of the segment", Float) = 0
 
@@ -81,7 +81,7 @@ Shader "Quiz cAnners/UI/Blick Radial"{
 			float4 _TextureSampleAdd;
 			float4 _ClipRect;
 			float4 _MainTex_ST;
-			float _Effect_Time;
+			float4 _Effect_Time;
 			float _Speed;
 			float _ArcSize;
 			float _Thickness;
@@ -109,7 +109,7 @@ Shader "Quiz cAnners/UI/Blick Radial"{
 
 				float2 radUv = float2(pixel_angle, pixel_distance);
 
-				float effect_center = _Effect_Time * _Speed + 1;
+				float effect_center = _Effect_Time.y * _Speed + 1;
 
 				float mirror = (effect_center - pixel_angle);
 
@@ -128,7 +128,9 @@ Shader "Quiz cAnners/UI/Blick Radial"{
 
 				IN.color *= circle * arc;
 
-				return  IN.color;
+				float4 mask = tex2D(_MainTex, IN.texcoord);
+
+				return  IN.color * mask;
 			}
 			ENDCG
 		}

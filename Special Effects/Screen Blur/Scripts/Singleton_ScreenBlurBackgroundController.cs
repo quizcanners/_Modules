@@ -40,7 +40,7 @@ namespace QuizCanners.SpecialEffects
             "Camera".PegiLabel(60).Edit_IfNull(ref myCamera, gameObject).Nl();
 
             "Attach this to Camera that only renders Background. And use ScreenBlurController to request screen shot update with background."
-                .PegiLabel().WriteHint();
+                .PegiLabel().Write_Hint();
         }
 
         #endregion

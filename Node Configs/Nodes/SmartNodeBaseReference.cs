@@ -26,7 +26,7 @@ namespace QuizCanners.IsItGame.NodeNotes
         public partial class Node 
         {
             [Serializable]
-            public class Reference : IPEGI, IPEGI_ListInspect, IGotReadOnlyName, INeedAttention
+            public class Id : IPEGI, IPEGI_ListInspect, INeedAttention
             {
                 [SerializeField] private BookReference _book;
                 [SerializeField] public int NodeIndex = -1;
@@ -51,8 +51,14 @@ namespace QuizCanners.IsItGame.NodeNotes
                     return _cachedChain;
                 }
 
+                public void CopyFrom(Id other) 
+                {
+                    Book = other.Book;
+                    NodeIndex = other.NodeIndex;
+                    _treeVersion = other._treeVersion;
+                }
                 public bool IsReferenceTo(Node node) => node != null && node._index == NodeIndex;
-                public bool SameAs(Reference reff) => reff._book.SameAs(_book) && reff.NodeIndex == NodeIndex;
+                public bool SameAs(Id reff) => reff != null && reff._book.Equals(_book) && reff.NodeIndex == NodeIndex;
                 public SO_ConfigBook GetBook() => _book.GetEntity();
 
                 #region Inspector
@@ -60,9 +66,11 @@ namespace QuizCanners.IsItGame.NodeNotes
                 private int _inspectedStuff = -1;
                 public void Inspect()
                 {
+                    var changes = pegi.ChangeTrackStart();
+
                     var book = GetBook();
 
-                    if (book == null || "Book ({0})".F(_book.GetReadOnlyName()).PegiLabel().IsEntered(ref _inspectedStuff, 0).Nl())
+                    if (book == null || "Book ({0})".F(_book.ToString()).PegiLabel().IsEntered(ref _inspectedStuff, 0).Nl())
                         _book.Inspect();
                     
                     var chain = GenerateNodeChain();
@@ -72,30 +80,44 @@ namespace QuizCanners.IsItGame.NodeNotes
                         pegi.Nl();
                         if (book != null)
                             "Node".PegiLabel().Select_iGotIndex(ref NodeIndex, book.GetAllNodes());
-                                
+
                         if (chain != null)
-                            chain.Nested_Inspect();
+                            chain.Nested_Inspect().OnChanged(()=> CopyFrom(chain.GetReferenceToLastNode()));
                     }
 
                     pegi.Nl();
+
+                    if (changes)
+                        _cachedChain = null;
                 }
 
                 public void InspectInList(ref int edited, int ind)
                 {
+                    var changes = pegi.ChangeTrackStart();
+
                     var book = _book.GetEntity();
 
                     if (!book)
                         _book.InspectInList(ref edited, ind);
                     else 
                     {
+                        if (Icon.Clear.ClickConfirm(confirmationTag: "ClearBook"))
+                        {
+                            _book = new BookReference();
+                            NodeIndex = -1;
+                        }
+
                         "Node".PegiLabel(60).Select_iGotIndex(ref NodeIndex, book.GetAllNodes());
 
                         if (Icon.Enter.Click())
                             edited = ind;
-                    }   
+                    }
+
+                    if (changes)
+                        _cachedChain = null;
                 }
 
-                public string GetReadOnlyName()
+                public override string ToString()
                 {
                     var n = GenerateNodeChain();
 
@@ -124,18 +146,18 @@ namespace QuizCanners.IsItGame.NodeNotes
                 #endregion
 
 
-                public Reference(Node node, SO_ConfigBook book)
+                public Id(Node node, SO_ConfigBook book)
                 {
                     NodeIndex = node == null ? -1 : node.IndexForInspector;
                     _book = new BookReference(book);
                 }
-                public Reference(SO_ConfigBook book)
+                public Id(SO_ConfigBook book)
                 {
                     NodeIndex = -1;
                     _book = new BookReference(book);
                 }
 
-                public Reference()
+                public Id()
                 {
                     _book = new BookReference();
                 }

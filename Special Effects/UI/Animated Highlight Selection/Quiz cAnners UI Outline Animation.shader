@@ -7,6 +7,10 @@ Shader "Quiz cAnners/UI/Outline Animation"{
 
 		_Color("Tint", Color) = (1,1,1,1)
 
+		_Width("Width", Range(0.01,1)) = 0
+
+		_Speed("Speed", Range(0.01,5)) = 1
+
 		[Toggle(_DEBUG)] debug("Debug", Float) = 0
 
 		_StencilComp("Stencil Comparison", Float) = 8
@@ -81,11 +85,13 @@ Shader "Quiz cAnners/UI/Outline Animation"{
 			};
 
 			sampler2D _MainTex;
-			float _Effect_Time;
+			float4 _Effect_Time;
 			float4 _Color;
 			float4 _TextureSampleAdd;
 			float4 _ClipRect;
 			float4 _MainTex_ST;
+			float _Width;
+			float _Speed;
 
 			v2f vert(appdata_t v)
 			{
@@ -119,12 +125,12 @@ Shader "Quiz cAnners/UI/Outline Animation"{
 
 				half2 uv = IN.unchangedPosition.xy;
 
-				half offset = alpha * 0.1;
+				half offset = alpha * 0.1 * _Width;
 
 				const float pii = 3.14159265359;
 				const float pi2 = pii * 2;
 
-				float time = (_Effect_Time * 10) % pi2;
+				float time = (_Effect_Time.y * _Speed * 10) % pi2 + offset;
 
 				float2 centerUv = IN.texcoord.xy - 0.5;
 
@@ -134,14 +140,12 @@ Shader "Quiz cAnners/UI/Outline Animation"{
 				float diff = 1;
 #				else 
 
-				float diff = smoothstep(0.2, 0, min(
+				float diff = smoothstep(_Width, 0, min(
 					abs(time - pixelAngle),
 					pi2 - abs(time - pixelAngle)
 				));
 
 #				endif
-
-
 
 				float4 color = IN.color;
 

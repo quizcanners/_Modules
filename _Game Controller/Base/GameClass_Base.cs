@@ -19,7 +19,7 @@ namespace QuizCanners.IsItGame
     {
         public abstract void Inspect();
 
-        private readonly pegi.GameView.Window _window = new(upscale: 2);
+        private readonly pegi.GameView.Window _window = new(customUpscale: 2);
 
         protected void OnGUI()
         {
@@ -40,9 +40,6 @@ namespace QuizCanners.IsItGame
 
     public abstract class IsItGameServiceBase : Singleton.BehaniourBase
     {
-        public int Version { get; private set; }
-        protected void SetDirty() => Version++;
-
         protected Gate.Integer _checkedStateVersion = new();
         protected bool TryEnterIfStateChanged() => Application.isPlaying && _checkedStateVersion.TryChange(GameState.Machine.Version);
 

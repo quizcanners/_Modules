@@ -44,7 +44,7 @@ Shader "Quiz cAnners/Effects/Ascending Particles"
 			uniform float4 _MainTex_TexelSize;
 			sampler2D _MainTex;
 			half _Distance;
-			float _Effect_Time;
+			float4 _Effect_Time;
 			float _Speed;
 			float4 _Color;
 
@@ -79,7 +79,7 @@ Shader "Quiz cAnners/Effects/Ascending Particles"
 
 				float cut = smoothstep(0.5, 0.4, abs(o.texcoord.y)) * smoothstep(0, 0.1, (0.5 - abs(o.texcoord.x)));
 
-				o.texcoord.y -= _Effect_Time * _Speed;
+				o.texcoord.y -= _Effect_Time.x * _Speed;
 
 				o.viewDir.xyz = normalize(o.viewDir.xyz);
 
@@ -93,7 +93,7 @@ Shader "Quiz cAnners/Effects/Ascending Particles"
 
 				 grid = grid - gridIndex;
 
-				float3 gyrPos = float3(gridIndex * 3351.345 , _Effect_Time *0.3);
+				float3 gyrPos = float3(gridIndex * 3351.345 , _Effect_Time.x *0.3);
 
 				float gyroid = dot(sin(gyrPos), cos(gyrPos.zxy));
 

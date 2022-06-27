@@ -21,12 +21,12 @@ namespace QuizCanners.IsItGame.UI
         [SerializeField] private RectTransform _root;
         [SerializeField] private RectTransform _raycastBlockObject;
         [SerializeField] private List<CachedView> _cachedViews = new();
-        [Serializable] public struct CachedView : IPEGI_ListInspect, IGotReadOnlyName
+        [Serializable] public struct CachedView : IPEGI_ListInspect
         {
             public Game.Enums.View ViewEnum;
             public GameObject Instance;
 
-            public string GetReadOnlyName() => ViewEnum.ToString();
+            public override string ToString() => ViewEnum.ToString();
 
             public void InspectInList(ref int edited, int index)
             {
@@ -36,7 +36,7 @@ namespace QuizCanners.IsItGame.UI
         }
 
         private GameObject _currentViewInstance;
-        private InstanceSource _currentViewIsAddressable;
+        private InstanceSource _currentViewInstanceSource;
         private Game.Enums.View _targetView = Game.Enums.View.None;
         private Game.Enums.View _currentView = Game.Enums.View.None;
         private ScreenChangeState _screenChangeState = ScreenChangeState.Standby;
@@ -53,7 +53,7 @@ namespace QuizCanners.IsItGame.UI
             } 
         }
 
-        private enum InstanceSource {Unknown, Addressable, Resources, Cached }
+        private enum InstanceSource {Unknown, Addressable, Resources, Cached, InSceneCollection }
 
         private readonly List<Game.Enums.View> _viewsStack = new();
         private LogicWrappers.Request _updateBackgroundRequested = new();
@@ -165,57 +165,68 @@ namespace QuizCanners.IsItGame.UI
                     if (_currentView == Game.Enums.View.None)
                     {
                         _screenChangeState = ScreenChangeState.ViewIsSetUp;
-                        break;
+                        return;
                     }
 
-                    GameObject cached = null;
+                    GameObject cachedInstance = null;
                     foreach (var c in _cachedViews)
                         if (c.ViewEnum == _currentView && c.Instance)
-                            cached = c.Instance;
+                            cachedInstance = c.Instance;
 
-                    if (cached)
+                    if (cachedInstance)
                     {
-                        FinalizeSetup(cached, InstanceSource.Cached);
+                        FinalizeSetup(cachedInstance, InstanceSource.Cached);
+                        return;
                     }
-                    else
-                    {
-                        var reff = _viewsInAssets.GetReference(_currentView);
 
-                        if (reff == null)
+                  
+                    foreach (var c in C_UiViews_Collection._uiViews)
+                    {
+                        if (c.TryGet(_currentView, out var inSceneView))
                         {
-                            ShowError("Reference {0} not found".F(_currentView));
-                            _screenChangeState = ScreenChangeState.ViewIsSetUp;
+                            var inst = Instantiate(inSceneView, _root);
+                            FinalizeSetup(inst, InstanceSource.InSceneCollection);
                             return;
                         }
-
-                        _timer = TimeProfiler.Instance[nameof(Singleton_UiView)].Max(key: _currentView.ToString()).Start();
-
-                        if (reff.IsReferenceVaid)
-                        {
-                            handle = reff.Reference.InstantiateAsync(_root);
-                            handle.Completed += result =>
-                            {
-                                if (result.Status == AsyncOperationStatus.Succeeded)
-                                {
-                                    FinalizeSetup(result.Result, InstanceSource.Addressable);
-                                }
-                                else
-                                {
-                                    ShowError("Couldn't load the {0} view".F(_currentView));
-                                }
-                            };
-                        }
-                        else
-                        {
-                            if (!reff.DirectReference)
-                            {
-                                ShowError("No References for {0} found".F(_currentView));
-                                return;
-                            }
-
-                            FinalizeSetup(Instantiate(reff.DirectReference, _root) as GameObject, InstanceSource.Resources);
-                        }
                     }
+                    
+                    var reff = _viewsInAssets.GetReference(_currentView);
+
+                    if (reff == null)
+                    {
+                        ShowError("Reference {0} not found".F(_currentView));
+                        _screenChangeState = ScreenChangeState.ViewIsSetUp;
+                        return;
+                    }
+
+                    _timer = TimeProfiler.Instance[nameof(Singleton_UiView)].Max(key: _currentView.ToString()).Start();
+
+                    if (reff.IsReferenceVaid)
+                    {
+                        handle = reff.Reference.InstantiateAsync(_root);
+                        handle.Completed += result =>
+                        {
+                            if (result.Status == AsyncOperationStatus.Succeeded)
+                            {
+                                FinalizeSetup(result.Result, InstanceSource.Addressable);
+                            }
+                            else
+                            {
+                                ShowError("Couldn't load the {0} view".F(_currentView));
+                            }
+                        };
+
+                        break;
+                    }
+              
+                    if (!reff.DirectReference)
+                    {
+                        ShowError("No References for {0} found".F(_currentView));
+                        return;
+                    }
+
+                    FinalizeSetup(Instantiate(reff.DirectReference, _root) as GameObject, InstanceSource.Resources);
+                
 
                     break;
 
@@ -229,7 +240,8 @@ namespace QuizCanners.IsItGame.UI
                             return;
                     }
 
-                    _timer.Dispose();
+                    if (_timer!= null)
+                        _timer.Dispose();
 
                     if (_loadingScreen)
                         _loadingScreen.SetActive(false);
@@ -242,10 +254,10 @@ namespace QuizCanners.IsItGame.UI
 
             void FinalizeSetup(GameObject instance, InstanceSource source)
             {
-                _currentViewIsAddressable = source;
-                _screenChangeState = ScreenChangeState.ViewIsSetUp;
+                _currentViewInstanceSource = source;
                 _currentViewInstance = instance;
                 _currentViewInstance.SetActive(true);
+                _screenChangeState = ScreenChangeState.ViewIsSetUp;
             }
         }
 
@@ -304,6 +316,9 @@ namespace QuizCanners.IsItGame.UI
                 pegi.Nl();
                 
                 "Cached".PegiLabel().Enter_List(_cachedViews).Nl();
+
+                "Collections".PegiLabel().Enter_List_UObj(C_UiViews_Collection._uiViews).Nl();
+
             }
         }
 
@@ -343,9 +358,10 @@ namespace QuizCanners.IsItGame.UI
         {
             if (_currentViewInstance)
             {
-                switch (_currentViewIsAddressable) 
+                switch (_currentViewInstanceSource) 
                 {
                     case InstanceSource.Addressable: Addressables.Release(_currentViewInstance); break;
+                    case InstanceSource.InSceneCollection:
                     case InstanceSource.Resources: _currentViewInstance.DestroyWhatever(); break;
                     case InstanceSource.Cached: _currentViewInstance.SetActive(false); break;
                 }

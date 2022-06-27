@@ -83,7 +83,7 @@ Shader "Quiz cAnners/UI/Mouse Proximity Light"
             sampler2D _MainTex;
             float4 _MainTex_ST;
 
-            float _Effect_Time;
+            float4 _Effect_Time;
             sampler2D _qcPp_Global_Screen_Effect;
             fixed4 _Color;
             float4 _qcPp_MousePosition;
@@ -136,7 +136,7 @@ Shader "Quiz cAnners/UI/Mouse Proximity Light"
                 fromMouse.x *= _qcPp_MousePosition.w;
                 float lenM = length(fromMouse);// *4;
 
-                IN.color.a *= alpha * smoothstep(0.2, 0, lenM + sin(lenM * 50 - _Effect_Time * 50) * 0.02) 
+                IN.color.a *= alpha * smoothstep(0.2, 0, lenM + sin(lenM * 50 - _Effect_Time.x * 50) * 0.02) 
 #               if _HIGHLIGHT_ON_PRESS
                     * _qcPp_MousePosition.z
 #               endif

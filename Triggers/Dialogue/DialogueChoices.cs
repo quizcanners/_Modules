@@ -6,7 +6,7 @@ using QuizCanners.Utils;
 namespace QuizCanners.IsItGame.Triggers.Dialogue
 {
 
-    internal class Interaction : ICfg, IPEGI, IGotReadOnlyName, ICondition, INeedAttention, IPEGI_ListInspect {
+    internal class Interaction : ICfg, IPEGI, ICondition, INeedAttention, IPEGI_ListInspect {
 
         private string referenceName = "";
         public ConditionBranch conditions = new();
@@ -92,8 +92,8 @@ namespace QuizCanners.IsItGame.Triggers.Dialogue
                 referenceName = value;
             }
         }*/
-        
-        public string GetReadOnlyName() => texts.NameForInspector;
+
+        public override string ToString() => texts.NameForInspector;
 
         public string NeedAttention() {
 
@@ -118,7 +118,7 @@ namespace QuizCanners.IsItGame.Triggers.Dialogue
                     {
                         if (renameLinkedReferences)
                         {
-                            if ("Ref".PegiLabel(50).EditDelayed(ref n))
+                            if ("Ref".PegiLabel(50).Edit_Delayed(ref n))
                                 ReferenceName = n;
                         }
                         else if ("Ref".PegiLabel(50).Edit(ref n))

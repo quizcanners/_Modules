@@ -1,4 +1,5 @@
-﻿Shader "Quiz cAnners/Effects/InfiniteParticle" {
+﻿Shader "Quiz cAnners/Effects/InfiniteParticle" 
+{
 	Properties{
 		[NoScaleOffset]_MainTex("Albedo (RGB)", 2D) = "white" {}
 		[NoScaleOffset]_MainTex2("Albedo (RGB)", 2D) = "white" {}
@@ -58,7 +59,7 @@
 				float _CustomTime;
 				float _Tiling;
 				float _Upscale;
-				float _Effect_Time;
+				float4 _Effect_Time;
 				float4 _Color;
 
 				v2f vert(appdata_full v) {
@@ -78,7 +79,7 @@
 #if DYNAMIC_SPEED
 					float t = _CustomTime;
 #else
-					float t = _Effect_Time *_Speed;
+					float t = _Effect_Time.x *_Speed;
 #endif
 					float2 off = (o.texcoord - 0.5);
 					o.offAndTotal.xy = off;

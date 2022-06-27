@@ -171,14 +171,14 @@ namespace QuizCanners.SpecialEffects
             #endregion
         }
 
-        protected abstract class RoundedButtonModuleBase : IGotClassTag, ICfg, IGotReadOnlyName
+        protected abstract class RoundedButtonModuleBase : IGotClassTag, ICfg
         {
             public static TaggedTypes.DerrivedList all = TaggedTypes<RoundedButtonModuleBase>.DerrivedList;//new TaggedTypesCfg(typeof(RoundedButtonModuleBase));
             public TaggedTypes.DerrivedList AllTypes => all;//all;
             public abstract string ClassTag { get; }
 
             #region Inspect
-            public virtual string GetReadOnlyName() => ClassTag;
+            public override string ToString() => ClassTag;
 
             public virtual void Inspect()
             {

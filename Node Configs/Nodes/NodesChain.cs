@@ -9,7 +9,7 @@ namespace QuizCanners.IsItGame.NodeNotes
 
     public partial class SO_ConfigBook
     {
-        public class NodesChain : IDisposable, IPEGI, IPEGI_ListInspect, IGotReadOnlyName
+        public class NodesChain : IDisposable, IPEGI, IPEGI_ListInspect
         {
             public List<NodeChainToken> Chain = new List<NodeChainToken>();
             public SO_ConfigBook Book { get; private set; }
@@ -35,7 +35,7 @@ namespace QuizCanners.IsItGame.NodeNotes
                 if (sn == null)
                     return null;
 
-                return Book[new Node.Reference(sn.Node, Book)];
+                return Book[new Node.Id(sn.Node, Book)];
             }
 
             public Node LastNode 
@@ -53,9 +53,9 @@ namespace QuizCanners.IsItGame.NodeNotes
 
           
 
-            public Node.Reference GetReferenceToLastNode()
+            public Node.Id GetReferenceToLastNode()
             {
-                return new Node.Reference(LastNode, Book);
+                return new Node.Id(LastNode, Book);
             }
 
             private bool TryGetConfigFromChain(ITaggedCfg val, out CfgData dta)
@@ -77,6 +77,8 @@ namespace QuizCanners.IsItGame.NodeNotes
                     if (lstCopy.Count == 0)
                         break;
                 }
+
+                Book.SetToDirty();
             }
 
             public void LoadConfigsIntoServices()
@@ -122,7 +124,7 @@ namespace QuizCanners.IsItGame.NodeNotes
                     "Empty Node Chain".PegiLabel().WriteWarning();
             }
 
-            public string GetReadOnlyName()
+            public override string ToString()
             {
                 if (LastNode != null)
                     return "Chain [{0}] -> {1}".F(Chain.Count, LastNode.GetNameForInspector());

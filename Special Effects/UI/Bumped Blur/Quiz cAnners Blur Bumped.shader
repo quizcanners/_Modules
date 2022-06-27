@@ -87,7 +87,7 @@ Shader "Quiz cAnners/UI/Blurred Screens Wih Bump"
             sampler2D _BumpMap;
             float4 _BumpMap_TexelSize;
 
-            float _Effect_Time;
+            float4 _Effect_Time;
             sampler2D _qcPp_Global_Screen_Effect;
             fixed4 _Color;
             float4 _qcPp_MousePosition;
@@ -145,7 +145,7 @@ Shader "Quiz cAnners/UI/Blurred Screens Wih Bump"
 
                     float bumpAlpha = //alpha * saturate((0.99 - (lenM) * 0.9) * _qcPp_MousePosition.z);
 
-                    alpha * smoothstep(0.2, 0, lenM + sin(lenM * 50 - _Effect_Time * 50) * 0.02) * _qcPp_MousePosition.z;
+                    alpha * smoothstep(0.2, 0, lenM + sin(lenM * 50 - _Effect_Time.x * 50) * 0.02) * _qcPp_MousePosition.z;
 
                     tnormal.rg *= bumpAlpha * bumpAlpha;
 

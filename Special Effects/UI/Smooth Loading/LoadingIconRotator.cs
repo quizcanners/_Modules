@@ -21,7 +21,7 @@ namespace QuizCanners.SpecialEffects
 
         private float transparency = 0.1f;
 
-        private float soundTimer;
+     //   private float soundTimer;
 
         private bool isFadingOut;
 
@@ -32,19 +32,20 @@ namespace QuizCanners.SpecialEffects
             if (cnt > 1)
             {
 
-                var changing = LerpUtils.IsLerpingBySpeed(ref transparency, isFadingOut ? 0f : 1f, isFadingOut ? 8f : 2f, unscaledTime: true);
 
-                if (changing || transparency > 0)
+                if (LerpUtils.IsLerpingBySpeed(ref transparency, isFadingOut ? 0f : 1f, isFadingOut ? 8f : 2f, unscaledTime: true)
+                    || transparency > 0)
                 {
-                    soundTimer -= Time.deltaTime;
+                   // soundTimer -= Time.unscaledDeltaTime;
 
-                    if (soundTimer < 0)
-                    {
+                    //if (soundTimer < 0)
+                    //{
+                        //Game.
                         //SoundEffects..Play();
-                        soundTimer += 0.3f;
-                    }
+                    //    soundTimer += 0.3f;
+                    //}
 
-                    rotation += Time.deltaTime * rotationSpeed;
+                    rotation += Time.unscaledDeltaTime * rotationSpeed;
                     rotation = rotation % loadingCircles.Count;
 
                     float minPortion = 1 / cnt;
