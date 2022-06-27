@@ -13,6 +13,8 @@ namespace QuizCanners.IsItGame
         private bool _allowFadeOut;
         private bool _isFadingOut;
 
+        public int EffectIndex;
+
         private float ClipProgress => Source.time / Source.clip.length;
 
         private float Volume
@@ -75,11 +77,11 @@ namespace QuizCanners.IsItGame
 
         void Update() 
         {
-            Singleton.Try<Singleton_Sounds>(s =>
+            Singleton.Try<Singleton_WorldSounds>(s =>
             {
                 if (!Source.isPlaying) 
                 {
-                    s.pool.ReturnToPool(this);
+                    s.ReturnToPool(this);
                     return;
                 }
 

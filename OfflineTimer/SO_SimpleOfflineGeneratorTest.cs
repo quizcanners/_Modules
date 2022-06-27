@@ -17,7 +17,7 @@ namespace QuizCanners.IsItGame
         [SerializeField] private SerializableTimeSpan _processedWithoutSyncronization;
        
         [NonSerialized] private readonly Gate.Frame _frameGate = new();
-        [NonSerialized] private readonly Gate.Time _editorOnlyTimeGate = new();
+        [NonSerialized] private readonly Gate.SystemTime _editorOnlyTimeGate = new();
 
         private Singleton_NetworkTime NetworkTime => Singleton.Get<Singleton_NetworkTime>();
 

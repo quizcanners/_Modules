@@ -7,7 +7,6 @@ namespace QuizCanners.SpecialEffects
 {
     partial class Singleton_SpecialEffectShaders
     {
-
         public class EffectsTimeManager : IPEGI, IPEGI_ListInspect
         {
             private const string EFFECT_TIME = "_Effect_Time";
@@ -16,7 +15,7 @@ namespace QuizCanners.SpecialEffects
             private static double _effectTime;
             private readonly FloatValue _shaderTime = new FloatValue(EFFECT_TIME);
             private readonly Gate.Frame _frameGate = new Gate.Frame();
-            private readonly Gate.Time _timeGate = new Gate.Time();
+            private readonly Gate.UnityTimeScaled _timeGate = new Gate.UnityTimeScaled();
 
             [SerializeField] private bool _enabled = true;
 
