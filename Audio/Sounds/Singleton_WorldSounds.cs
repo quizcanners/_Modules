@@ -76,7 +76,7 @@ namespace QuizCanners.IsItGame
                             if (Vector3.Distance(cameraPos, soundPosition) < Vector3.Distance(cameraPos, inst.transform.position))
                             {
                                 inst.transform.position = soundPosition;
-                                Debug.Log("Repositioning {0}".F(eff));
+                               // Debug.Log("Repositioning {0}".F(eff));
                             }
                         });
                     }
