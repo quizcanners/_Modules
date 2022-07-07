@@ -397,6 +397,18 @@ namespace QuizCanners.SpecialEffects
             }
 
         }
+
+        public override string NeedAttention()
+        {
+            if (!copyShader) return "{0} is Missing".F(nameof(copyShader));
+            if (!copyDownscale) return "{0} is Missing".F(nameof(copyDownscale));
+            if (!blurShader) return "{0} is Missing".F(nameof(blurShader));
+            if (!washAwayShader) return "{0} is Missing".F(nameof(washAwayShader));
+            if (!zoomOutShader) return "{0} is Missing".F(nameof(zoomOutShader));
+
+            return base.NeedAttention();
+        }
+
         #endregion
 
         void Reset()
