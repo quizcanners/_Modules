@@ -19,7 +19,7 @@ namespace QuizCanners.TinyECS
             public abstract int GetCount();
         }
 
-        internal class ComponentArrayGenric<T> : ComponentCollectionBase, IPEGI_ListInspect, IPEGI, IGotReadOnlyName where T : IComponentData
+        internal class ComponentArrayGenric<T> : ComponentCollectionBase, IPEGI_ListInspect, IPEGI, IGotReadOnlyName where T : struct, IComponentData
         {
             internal ComponentArray components = new ComponentArray();
 
@@ -45,13 +45,20 @@ namespace QuizCanners.TinyECS
                 return new ComponentIndex(index);
             }
 
+            internal ComponentIndex Create(T data)
+            {
+                components.Create(out int index);
+                components[index] = data;
+                return new ComponentIndex(index);
+            }
+
             internal override bool TryDestroy(ComponentIndex index) => components.TryDestroy(index.Index);
 
-            internal class ComponentArray : ValidatabeArrayGeneric<T>
+            internal class ComponentArray : ValidatabeArrayGeneric<T> 
             {
                 protected override T Revalidate(int index)
                 {
-                    return _array[index];
+                    return new T();
                 }
             }
 
@@ -84,7 +91,6 @@ namespace QuizCanners.TinyECS
             internal void AddComponent<T>(SystemActionR<T> onCreate) where T : struct, IComponentData
             {
                 var flag = World.GetFlag<T>();
-
                 if (_componentIndexes == null)
                     _componentIndexes = new Dictionary<int, ComponentIndex>();
 
@@ -95,21 +101,31 @@ namespace QuizCanners.TinyECS
                 componentFlags |= World.GetFlag<T>();
             }
 
+            internal void AddComponent<T>(T data) where T : struct, IComponentData
+            {
+                var flag = World.GetFlag<T>();
+                if (_componentIndexes == null)
+                    _componentIndexes = new Dictionary<int, ComponentIndex>();
+
+                ComponentIndex ind = World.GetComponentDatas<T>().Create(data);
+                _componentIndexes[flag] = ind;
+                componentFlags |= World.GetFlag<T>();
+            }
+
             internal ComponentIndex AddComponent<T>() where T : struct, IComponentData
             {
                 var flag = World.GetFlag<T>(); 
-
                 if (_componentIndexes == null)
                     _componentIndexes = new Dictionary<int, ComponentIndex>();
 
                 ComponentIndex ind = World.GetComponentDatas<T>().Create();
 
                 _componentIndexes[flag] = ind;
-
                 componentFlags |= World.GetFlag<T>();
 
                 return ind;
             }
+
 
 
             internal void OnDestroy() 

@@ -19,7 +19,6 @@ namespace QuizCanners.TinyECS
         [SerializeField] private string[] _entityNames;
         internal ITinyECSworld link;
 
-
         internal ComponentArrayGenric<T> GetComponentDatas<T>() where T : struct, IComponentData
         {
             var flag = GetFlag<T>();
@@ -90,9 +89,9 @@ namespace QuizCanners.TinyECS
 
         internal void AddComponent<T>(Entity entity, SystemActionR<T> onCreate) where T : struct, IComponentData
         {
-            EntityComponentsList list = this[entity];
-            list.AddComponent(onCreate);
-            this[entity] = list;
+            EntityComponentsList entityComponents = this[entity];
+            entityComponents.AddComponent(onCreate);
+            this[entity] = entityComponents;
         }
 
         internal void RemoveComponent<T>(Entity entity) where T : struct, IComponentData
@@ -131,6 +130,20 @@ namespace QuizCanners.TinyECS
             cmps.TryGet<T>(out var index); 
             ComponentCollectionBase byType = allComponents[GetFlag<T>()];
             return (T)byType.GetComponentObject(index);
+        }
+
+        internal void SetComponent<T>(Entity entity, T componentData) where T : struct, IComponentData 
+        {
+            EntityComponentsList entityComponents = this[entity];
+            ComponentArrayGenric<T> allComponents = GetComponentDatas<T>();
+            if (entityComponents.TryGet<T>(out var index)) 
+            {
+                allComponents[index] = componentData;
+            } else 
+            {
+                entityComponents.AddComponent(componentData);
+                this[entity] = entityComponents;
+            }
         }
 
         internal bool TryGetComponent<T>(Entity entity, out T component) where T : struct, IComponentData

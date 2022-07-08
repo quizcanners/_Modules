@@ -42,8 +42,20 @@ namespace QuizCanners.TinyECS
                 => World.RemoveComponent<T>(this);
 
             public T GetComponent<T>() where T : struct, IComponentData
-               => World.GetComponent<T>(this);
+            {
+#if UNITY_EDITOR
+                if (World == null) 
+                {
+                    Debug.LogError("World {0} is null".F(typeof(W)));
+                    return default(T);
+                }
+#endif
 
+                return World.GetComponent<T>(this);
+            }
+
+            public void SetComponent<T>(T data) where T : struct, IComponentData => World.SetComponent(this, data);
+            
             public void Destroy() => World.Destroy(this);
 
             public bool TryGetComponent<T>(out T component) where T : struct, IComponentData
@@ -80,6 +92,12 @@ namespace QuizCanners.TinyECS
                     return;
                 }
 
+                if (!IsAlive) 
+                {
+                    "Entity is Disposed".PegiLabel().Nl();
+                    return;
+                }
+
                 world.Inspect(this);
 
                 if (World.componentListsForEntity.TryGetValue(Index, out EntityComponentsList components))
@@ -88,18 +106,32 @@ namespace QuizCanners.TinyECS
                
             public void InspectComponent<T>() where T : struct, IComponentData
             {
+
+                if (!IsAlive)
+                {
+                    return;
+                }
+
                 var has = HasComponent<T>();
+
                 if (has)
                 {
                     if (Icon.Delete.Click())
                         RemoveComponent<T>();
-
-                    var cmp = GetComponent<T>() as IPEGI_ListInspect;
-
-                    if (cmp != null)
-                        cmp.InspectInList_Nested();
                     else
-                        typeof(T).ToPegiStringType().PegiLabel().Write();
+                    {
+                        var change = pegi.ChangeTrackStart();
+                     
+                        IPEGI_ListInspect cmp = GetComponent<T>() as IPEGI_ListInspect;
+
+                        if (cmp != null)
+                            pegi.Inspect_AsInList_Value(ref cmp);
+                        else
+                            typeof(T).ToPegiStringType().PegiLabel().Write();
+
+                        if (change)
+                            SetComponent((T)cmp);
+                    }
                 }
 
                 if (!has)
