@@ -86,7 +86,7 @@ namespace QuizCanners.TinyECS
             internal ComponentIndex this[int typeFlag] => _componentIndexes[typeFlag];
             internal bool HasComponents(int subsetFlags) => (componentFlags & subsetFlags) == subsetFlags;
             internal bool HasComponent<T>() where T : struct, IComponentData
-                => _componentIndexes == null ? false : _componentIndexes.TryGetValue(World.GetFlag<T>(), out _);
+                => _componentIndexes != null && _componentIndexes.TryGetValue(World.GetFlag<T>(), out _);
 
             internal void AddComponent<T>(SystemActionR<T> onCreate) where T : struct, IComponentData
             {

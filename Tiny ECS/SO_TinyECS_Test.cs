@@ -67,7 +67,7 @@ namespace QuizCanners.TinyECS
                         q.progress += 2;
                     });
 
-                    this.GetWorld().RunSystem((ref Quest q) =>
+                    this.GetWorld().WithAll<Quest>().Run((ref Quest q) =>
                     {
                         q.progress -= 1;
                     });
@@ -143,7 +143,7 @@ namespace QuizCanners.TinyECS
                 var zooWorld = this.GetWorld();
 
                 MeasureSystem("ref Animal", () =>
-                zooWorld.RunSystem((ref AnimalComponent animal) => animal.Sound = "Meow"));
+                zooWorld.WithAll<AnimalComponent>().Run((ref AnimalComponent animal) => animal.Sound = "Meow"));
 
                 MeasureSystem("ref pos ref speed", () =>
                 zooWorld.RunSystem((ref PositionComponent pos, ref SpeedComponent speed) => pos.Position.x += 2 + speed.Speed));

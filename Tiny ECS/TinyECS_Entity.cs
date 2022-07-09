@@ -10,8 +10,15 @@ namespace QuizCanners.TinyECS
         int Index { get; }
         int Version { get; }
 
+        public bool IsAlive { get; }
+
         bool HasComponent<T>() where T : struct, IComponentData;
-        void AddComponent<T>() where T : struct, IComponentData;
+        IEntity AddComponent<T>() where T : struct, IComponentData;
+        IEntity AddComponent<T>(SystemActionR<T> onCreate) where T : struct, IComponentData;
+
+        void SetComponent<T>(T data) where T : struct, IComponentData;
+        T GetComponent<T>() where T : struct, IComponentData;
+
         void InspectComponent<T>() where T : struct, IComponentData;
         public void Destroy();
         public ITinyECSworld WorldLink { get; }
@@ -32,11 +39,17 @@ namespace QuizCanners.TinyECS
             public bool HasComponent<T>() where T : struct, IComponentData
                 => World.HasComponent<T>(this);
 
-            public void AddComponent<T>() where T : struct, IComponentData
-                => World.AddComponent<T>(this);
+            public IEntity AddComponent<T>() where T : struct, IComponentData
+            {
+                World.AddComponent<T>(this);
+                return this;
+            }
 
-            public void AddComponent<T>(SystemActionR<T> onCreate) where T : struct, IComponentData
-                => World.AddComponent(this, onCreate);
+            public IEntity AddComponent<T>(SystemActionR<T> onCreate) where T : struct, IComponentData
+            {
+                World.AddComponent(this, onCreate);
+                return this;
+            }
 
             public void RemoveComponent<T>() where T : struct, IComponentData
                 => World.RemoveComponent<T>(this);
