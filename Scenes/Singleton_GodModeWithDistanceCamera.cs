@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace QuizCanners.Utils
 {
-    public class C_GodModeWithDistanceCamera : Singleton_CameraOperatorConfigurable
+    public class Singleton_GodModeWithDistanceCamera : Singleton_CameraOperatorConfigurable
     {
         [SerializeField] private Camera _distanceCamera;
         [SerializeField] private float _distantCameraFarClip;
@@ -52,5 +52,5 @@ namespace QuizCanners.Utils
 
     }
 
-    [PEGI_Inspector_Override(typeof(C_GodModeWithDistanceCamera))] internal class GodModeWithDistanceCameraDrawer : PEGI_Inspector_Override { }
+    [PEGI_Inspector_Override(typeof(Singleton_GodModeWithDistanceCamera))] internal class GodModeWithDistanceCameraDrawer : PEGI_Inspector_Override { }
 }
