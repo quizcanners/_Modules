@@ -240,11 +240,11 @@ namespace QuizCanners.IsItGame
     public static partial class SoundEffectsExtension
     {
         public static void PlayOneShotAt(this Game.Enums.UiSoundEffects eff, Vector3 position, float minGap = -1, float clipVolume = 1, bool allowFadeOut = false)
-           => Singleton.Try<Singleton_WorldSounds>(serv => serv.PlayOneShotAt(eff, position, minGap: minGap, clipVolume: clipVolume, allowFadeOut: allowFadeOut));
+           => Singleton.Try<Singleton_WorldSounds>(serv => serv.PlayOneShotAt(eff, position, minGap: minGap, clipVolume: clipVolume, allowFadeOut: allowFadeOut), logOnServiceMissing: false);
 
         public static void PlayOneShotDelayedAt(this Game.Enums.UiSoundEffects eff, Vector3 position, float delay, float minGap = -1, float clipVolume = 1, bool allowFadeOut = false)
            => Singleton.Try<Singleton_WorldSounds>(serv => 
-           serv.PlayDelaedAt(eff, position, minGap: minGap, delay: delay, clipVolume: clipVolume, allowFadeOut: allowFadeOut));
+           serv.PlayDelaedAt(eff, position, minGap: minGap, delay: delay, clipVolume: clipVolume, allowFadeOut: allowFadeOut), logOnServiceMissing: false);
 
         public static bool CanPlay(this Game.Enums.UiSoundEffects eff, float minGap = -1) 
               => Singleton.TryGetValue<Singleton_WorldSounds, bool>(serv => serv.CanPlay(eff, minGap: minGap), defaultValue: false);
