@@ -15,7 +15,7 @@ namespace QuizCanners.IsItGame
 
         public SO_PersistentGameData PersistentProgressData;
 
-        private Gate.Bool _isFocused = new Gate.Bool();
+        private Gate.Bool _isFocused = new();
 
         void Update()
         {
