@@ -1,10 +1,8 @@
-using Dungeons_and_Dragons.Tables;
 using QuizCanners.Inspect;
 using QuizCanners.Utils;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking.Types;
 
 namespace QuizCanners.IsItGame.SplinePath
 {
@@ -20,9 +18,7 @@ namespace QuizCanners.IsItGame.SplinePath
             [SerializeField] internal Link.Id direction = new();
 
             [SerializeField] private string _name = "";
-            [SerializeField] private bool _overrideNode;
-            [SerializeField] private NodeNotes.SO_ConfigBook.Node.Id nodeId = new NodeNotes.SO_ConfigBook.Node.Id();
-
+       
             public List<Link> GetLinks() 
             {
                 var allLinks = Singleton_SplinePath.CurrentCfg.links;
@@ -77,12 +73,6 @@ namespace QuizCanners.IsItGame.SplinePath
                         if ("Direction".PegiLabel(60).Select(ref lnk, GetLinks()).Nl())
                             direction.SetEntity(lnk);
                     }
-
-                    if (context.IsAnyEntered == false)
-                        "Node".PegiLabel().ToggleIcon(ref _overrideNode, hideTextWhenTrue: true);
-
-                    if (_overrideNode)
-                        nodeId.Enter_Inspect().Nl();
                 }
             }
 

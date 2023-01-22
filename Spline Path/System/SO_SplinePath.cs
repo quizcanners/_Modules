@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace QuizCanners.IsItGame.SplinePath
 {
-    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_GameController.PROJECT_NAME + "/" + FILE_NAME)]
+    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + "Spline/" + FILE_NAME)]
     public partial class SO_SplinePath : ScriptableObject, IPEGI, IPEGI_Handles, IGotName
     {
         public const string FILE_NAME = "Pulse Path Configs";

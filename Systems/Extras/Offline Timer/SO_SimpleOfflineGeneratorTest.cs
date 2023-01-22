@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace QuizCanners.IsItGame
 {
-    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + Singleton_GameController.PROJECT_NAME + "/Test/" + FILE_NAME)]
+    [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU + "/Tests/" + FILE_NAME)]
     public class SO_SimpleOfflineGeneratorTest : ScriptableObject, IPEGI
     {
         public const string FILE_NAME = "Offline Generator Test";
