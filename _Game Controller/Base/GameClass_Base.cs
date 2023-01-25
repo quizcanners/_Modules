@@ -19,7 +19,7 @@ namespace QuizCanners.IsItGame
     {
         public abstract void Inspect();
 
-        private readonly pegi.GameView.Window _window = new(upscale: 2);
+        private readonly pegi.GameView.Window _window = new(customUpscale: 2);
 
         protected void OnGUI()
         {

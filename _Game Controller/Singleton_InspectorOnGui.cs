@@ -15,7 +15,6 @@ namespace QuizCanners.IsItGame
         [SerializeField] private bool _drawInspectorOnGui;
         private pegi.GameView.Window _window;
 
-
         public enum InspctorMode { Mobile, Desktop }
 
         public bool DrawInspector 
@@ -57,7 +56,6 @@ namespace QuizCanners.IsItGame
 
         void OnGUI()
         {
-
             switch (_mode) {
                 case InspctorMode.Desktop:
                 if (_window == null)
@@ -70,11 +68,11 @@ namespace QuizCanners.IsItGame
                     return;
 
                 if (_window == null)
-                    _window = new pegi.GameView.Window(upscale: 2f);
+                    _window = new pegi.GameView.Window();
 
                     break;
             }
-                
+
             _window.Render(Singleton.Get<Singleton_GameController>());
             
            /*
