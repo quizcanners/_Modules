@@ -2,7 +2,7 @@
 {
 	Properties{
 		[PerRendererData]_MainTex("Albedo (RGB)", 2D) = "black" {}
-		_Edges("Sharpness", Range(0,1)) = 0.5
+		_Edges("Sharpness", Range(0,1.2)) = 0.5
 		[Toggle(TRIMMED)] trimmed("Trimmed Corners", Float) = 0
 	}
 	Category{
@@ -80,6 +80,8 @@
 
 					_Edges /= 1 + mip * mip; //LOD
 
+					float pz = 1 + _Edges * 32;
+
 					float4 _ProjTexPos =	o.projPos;
 					float _Courners =		o.texcoord.w;
 					float deCourners = 1 - _Courners;
@@ -109,7 +111,7 @@
 
 					float alpha = max(0, 1 - max(fade, dist));
 
-					alpha = min(1, pow(alpha * o.precompute.z, o.texcoord.z));
+					alpha = min(1, pow(alpha * pz, o.texcoord.z));
 
 					o.color.a *= alpha;
 

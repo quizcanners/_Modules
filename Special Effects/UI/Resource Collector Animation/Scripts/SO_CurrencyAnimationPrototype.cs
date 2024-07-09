@@ -15,6 +15,9 @@ namespace QuizCanners.SpecialEffects
         [SerializeField] private List<AudioClip> onCreateSounds = new List<AudioClip>();
         [SerializeField] private List<AudioClip> onConsumeSounds = new List<AudioClip>();
 
+        public float OnCreateVolume = 0.5f;
+        public float OnConsumeVolume = 0.5f; 
+
         [NonSerialized] private int _previousSprite = -1;
         [NonSerialized] private int _previousCreateSound = -1;
         [NonSerialized] private int _previousConsumeSound = -1;
@@ -37,13 +40,24 @@ namespace QuizCanners.SpecialEffects
 
         #region Inspector
 
-        public void Inspect()
-        {
-            pegi.Nl();
+        private readonly pegi.EnterExitContext _context = new();
 
-            "Sprites".PegiLabel().Edit_List_UObj(sprites).Nl();
-            "On Create".PegiLabel().Edit_List_UObj(onCreateSounds).Nl();
-            "On Consume".PegiLabel().Edit_List_UObj(onConsumeSounds).Nl();
+        void IPEGI.Inspect()
+        {
+            using (_context.StartContext())
+            {
+                pegi.Nl();
+                "Sprites".PegiLabel().Enter_List_UObj(sprites).Nl();
+                "On Create".PegiLabel().Enter_List_UObj(onCreateSounds).Nl();
+                "On Consume".PegiLabel().Enter_List_UObj(onConsumeSounds).Nl();
+
+                if (_context.IsAnyEntered == false) 
+                {
+                    "On Create Volume".PegiLabel().Edit(ref OnCreateVolume, 0, 2).Nl();
+                    "On Consume Volume".PegiLabel().Edit(ref OnConsumeVolume, 0, 2).Nl();
+                }
+
+            }
         }
 
         public void InspectInList(ref int edited, int index)

@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace QuizCanners.SpecialEffects
 {
+    [AddComponentMenu(QcUtils.QUIZCANNERS + "/Screen Blur Background Controller")]
     public class Singleton_ScreenBlurBackgroundController : Singleton.BehaniourBase
     {
         [SerializeField] protected Camera myCamera;

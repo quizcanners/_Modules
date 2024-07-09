@@ -160,13 +160,11 @@ namespace QuizCanners.SpecialEffects
                 switch (key)
                 {
                     case "b": data.ToDelegate(base.DecodeTag); break;
-                    case "mp": referenceTexture.Decode(data); break;
                 }
             }
 
             public override CfgEncoder Encode() => new CfgEncoder()//this.EncodeUnrecognized()
-                    .Add("b", base.Encode())
-                    .Add("mp", referenceTexture);
+                    .Add("b", base.Encode());
 
             #endregion
         }

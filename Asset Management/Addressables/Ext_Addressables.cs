@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace QuizCanners.IsItGame
+namespace QuizCanners.SavageTurret
 {
 
     public static class AddressablesExtensions 

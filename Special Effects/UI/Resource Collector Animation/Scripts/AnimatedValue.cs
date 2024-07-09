@@ -112,7 +112,7 @@ namespace QuizCanners.SpecialEffects
                 }
                 else
                 {
-                    currentValue = LerpUtils.LerpBySpeed(currentValue, targetValue, valueChangeSpeed, unscaledTime: true);
+                    currentValue = QcLerp.LerpBySpeed(currentValue, targetValue, valueChangeSpeed, unscaledTime: true);
                 }
             }
 

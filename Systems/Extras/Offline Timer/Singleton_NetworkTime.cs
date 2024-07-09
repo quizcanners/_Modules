@@ -5,7 +5,7 @@ using System.Globalization;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace QuizCanners.IsItGame
+namespace QuizCanners.SavageTurret
 {
     public class Singleton_NetworkTime : Singleton.ClassBase, IPEGI
     {
@@ -60,7 +60,7 @@ namespace QuizCanners.IsItGame
             }
         }
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             if (IsTimeValid)
                 "Last Network Time: {0}".F(Time.ToString()).PegiLabel().Write();
@@ -77,9 +77,6 @@ namespace QuizCanners.IsItGame
                 });
 
             pegi.Nl();
-
-         
-            
         }
 
         private void CheckRequest()

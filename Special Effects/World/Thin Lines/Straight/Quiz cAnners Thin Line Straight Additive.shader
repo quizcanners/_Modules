@@ -109,7 +109,7 @@
 					float partZ = i.screenPos.z;
 					float differ = sceneZ - partZ;
 
-
+					brightness *= 1 + (smoothstep(0.5,0, differ)) * smoothstep(-0.25, 0, differ) *50; // Simulate light shining on nearby surfaces
 
 					float toCamera = length(_WorldSpaceCameraPos - i.worldPos.xyz) - _ProjectionParams.y;
 

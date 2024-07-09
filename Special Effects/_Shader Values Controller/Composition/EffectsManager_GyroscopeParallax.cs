@@ -6,7 +6,7 @@ using UnityEngine;
 namespace QuizCanners.SpecialEffects
 {
 
-    public partial class Singleton_SpecialEffectShaders
+    public static partial class Effects
     {
         [Serializable]
         public class GyroscopeParallaxManager : IPEGI, IPEGI_ListInspect
@@ -18,10 +18,10 @@ namespace QuizCanners.SpecialEffects
 
             [NonSerialized] private bool initialized;
             [NonSerialized] private Quaternion previousRotation;
-            [SerializeField] private ShaderProperty.Feature USE_PARALLAX = new ShaderProperty.Feature("qc_USE_PARALLAX");
+            [SerializeField] private ShaderProperty.Feature USE_PARALLAX = new("qc_USE_PARALLAX");
             [NonSerialized] private Vector2 _debugTiltSpeed;
 
-            private readonly ShaderProperty.VectorValue PARALLAX_OFFSET = new ShaderProperty.VectorValue("qc_ParallaxOffset");
+            private readonly ShaderProperty.VectorValue PARALLAX_OFFSET = new("qc_ParallaxOffset");
 
             public bool Enabled 
             {
@@ -90,7 +90,7 @@ namespace QuizCanners.SpecialEffects
             }
 
             #region Inspector
-            public void Inspect()
+            void IPEGI.Inspect()
             {
                 pegi.Nl();
 

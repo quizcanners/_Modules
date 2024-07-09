@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace QuizCanners.IsItGame {
+namespace QuizCanners.SavageTurret {
     public class Singleton_AddressablesAnalyzer : Singleton.BehaniourBase, IPEGI
     {
         private async Task ChildTask()

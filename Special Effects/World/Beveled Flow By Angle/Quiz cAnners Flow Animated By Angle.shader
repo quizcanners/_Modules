@@ -180,7 +180,7 @@ Shader "Quiz cAnners/Geometry/Flow Animated By Angle"
 
 					Combined_Light(col, ambient, smoothness, normal, i.viewDir.xyz, shadow);
 
-					BleedAndBrightness(col, 1, i.texcoord.xy);
+					//BleedAndBrightness(col, 1, i.texcoord.xy);
 
 					return saturate(col);
 

@@ -8,7 +8,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
 
-namespace QuizCanners.IsItGame
+namespace QuizCanners.SavageTurret
 {
     public class SO_EnumeratedAssetReferenceBase: ScriptableObject 
     {
@@ -116,7 +116,7 @@ namespace QuizCanners.IsItGame
         #region Inspector
 
         private int _inspectedReference = -1;
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             EnumeratedReference.inspectedEnum = typeof(T);
             EnumeratedReference.inspectedDataSource = this;

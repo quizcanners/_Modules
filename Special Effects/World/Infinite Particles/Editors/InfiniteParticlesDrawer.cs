@@ -51,7 +51,7 @@ namespace QuizCanners.SpecialEffects
             return changed;
         }
 
-        private static readonly ShaderProperty.ColorFloat4Value color = new ShaderProperty.ColorFloat4Value("_Color");
+        private static readonly ShaderProperty.ColorValue color = new ShaderProperty.ColorValue("_Color");
         private static readonly ShaderProperty.FloatValue speed = new ShaderProperty.FloatValue("_Speed");
         private static readonly ShaderProperty.FloatValue time = new ShaderProperty.FloatValue("_CustomTime");
         private static readonly ShaderProperty.FloatValue tiling = new ShaderProperty.FloatValue("_Tiling");

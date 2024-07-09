@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using QuizCanners.Inspect;
-using QuizCanners.Utils;
 using UnityEngine;
-using static QuizCanners.Utils.OnDemandRenderTexture;
 
 namespace QuizCanners.SpecialEffects
 {
+    using Inspect;
+    using Utils;
+    using static Utils.OnDemandRenderTexture;
+
     [DisallowMultipleComponent]
+    [AddComponentMenu(QcUtils.QUIZCANNERS + "/Screen Blur")]
     public class Singleton_ScreenBlur : Singleton.BehaniourBase, IPEGI
     {
         [SerializeField] protected Camera MyCamera;
@@ -24,30 +26,33 @@ namespace QuizCanners.SpecialEffects
         [Header("Setings:")]
         [SerializeField] private GrabMethod grabMethod = GrabMethod.RenderFromCamera;
         private const int MAX_BLUR_FACTOR = 50;
-        [SerializeField] protected LogicWrappers.CountUpToMax screenGrabBlurCounter = new LogicWrappers.CountUpToMax(10);
-        [SerializeField] private LogicWrappers.CountUpToMax backgroundBlurCounter = new LogicWrappers.CountUpToMax(10);
+        [SerializeField] protected LogicWrappers.CountUpToMax screenGrabBlurCounter = new(10);
+        [SerializeField] private LogicWrappers.CountUpToMax backgroundBlurCounter = new(10);
 
         private enum GrabMethod { ScreenCapture, RenderFromCamera }
 
         // Buffer Management
-        protected readonly ShaderProperty.TextureValue SCREEN_GRAB_SHD = new ShaderProperty.TextureValue("_qcPp_Global_Screen_Read");
-        protected readonly ShaderProperty.TextureValue PROCESSED_SCREEN_SHD = new ShaderProperty.TextureValue("_qcPp_Global_Screen_Effect");
-        protected readonly ShaderProperty.TextureValue BACKGROUND_SHD = new ShaderProperty.TextureValue("_qcPp_Global_Screen_Background");
-        protected readonly ShaderProperty.FloatValue SCREEN_BLUR_ITERATION = new ShaderProperty.FloatValue("_qcPp_Screen_Blur_Iteration");
+        protected readonly ShaderProperty.TextureValue SCREEN_GRAB_SHD = new("_qcPp_Global_Screen_Read");
+        protected readonly ShaderProperty.TextureValue PROCESSED_SCREEN_SHD = new("_qcPp_Global_Screen_Effect");
+        protected readonly ShaderProperty.TextureValue BACKGROUND_SHD = new("_qcPp_Global_Screen_Background");
+        protected readonly ShaderProperty.FloatValue SCREEN_BLUR_ITERATION = new("_qcPp_Screen_Blur_Iteration");
 
-        protected readonly ScreenSize BACKGROUND = new ScreenSize("Background Read", useDepth: true);
-        protected readonly ScreenSize SCREEN_READ_TEXTURE = new ScreenSize("Screen Read", useDepth: true);
-        protected readonly ScreenSize SCREEN_READ_SECOND_BUFFER = new ScreenSize("Second Screen Read Buffer", useDepth: false);
-        protected readonly DoubleBuffer EFFECT_DOUBLE_BUFFER = new DoubleBuffer("Blur Effect", isFloat: false);
+        protected readonly ScreenSize BACKGROUND = new("Background Read", useDepth: true, isColor: true);
+        protected readonly ScreenSize SCREEN_READ_TEXTURE = new("Screen Read", useDepth: true, isColor: true);
+        protected readonly ScreenSize SCREEN_READ_SECOND_BUFFER = new("Second Screen Read Buffer", useDepth: false, isColor: true);
+        protected readonly DoubleBuffer EFFECT_DOUBLE_BUFFER = new("Blur Effect", PrecisionType.Regular, clearOnCreate: true, isColor: true);
 
-        protected static MaterialInstancer.ByShader effectMaterialInstance = new MaterialInstancer.ByShader();
+        protected static MaterialInstancer.ByShader effectMaterialInstance = new();
 
         // Request
         [NonSerialized] protected ProcessCommand processCommand;
         [NonSerialized] protected BlurStep step = BlurStep.Off;
         [NonSerialized] protected BackgroundScreenShotData backgroundState = BackgroundScreenShotData.Uninitialized;
-        [NonSerialized] protected List<Action> onFirstRenderList = new List<Action>();
-        [NonSerialized] protected LogicWrappers.Request backgroundUpdate = new LogicWrappers.Request();
+        [NonSerialized] protected List<Action> onFirstRenderList = new();
+        [NonSerialized] protected LogicWrappers.Request backgroundUpdate = new();
+
+
+
 
 
         public void RequestUpdate(Action onFirstRendered = null, ProcessCommand afterScreenGrab = ProcessCommand.Blur, bool updateBackground = true)
@@ -194,7 +199,7 @@ namespace QuizCanners.SpecialEffects
 
                     if (shade)
                     {
-                        EFFECT_DOUBLE_BUFFER.BlitToTarget(shade);
+                        EFFECT_DOUBLE_BUFFER.Blit(shade, andRelease: true);
 
                         if (backgroundState == BackgroundScreenShotData.UsingOverlayScreenGrab)
                         {
@@ -229,7 +234,7 @@ namespace QuizCanners.SpecialEffects
                     else
                     {
                         SCREEN_BLUR_ITERATION.GlobalValue = Math.Min(MAX_BLUR_FACTOR, backgroundBlurCounter.Count);
-                        EFFECT_DOUBLE_BUFFER.BlitToTarget(blurShader);
+                        EFFECT_DOUBLE_BUFFER.Blit(blurShader, andRelease: true);
                     }
 
                     break;
@@ -311,7 +316,7 @@ namespace QuizCanners.SpecialEffects
             if (Application.isPlaying)
             {
                 EFFECT_DOUBLE_BUFFER.Nested_Inspect().Nl();
-                "Render Blur".PegiLabel().Click().Nl().OnChanged(() => EFFECT_DOUBLE_BUFFER.BlitToTarget(blurShader));
+                "Render Blur".PegiLabel().Click().Nl().OnChanged(() => EFFECT_DOUBLE_BUFFER.Blit(blurShader, andRelease: false));
             }
 
             if ("Settings".PegiLabel().IsFoldout().Nl())
@@ -411,6 +416,16 @@ namespace QuizCanners.SpecialEffects
         {
             MyCamera = GetComponent<Camera>();
             step = BlurStep.Off;
+        }
+
+        protected override void OnBeforeOnDisableOrEnterPlayMode(bool afterEnableCalled)
+        {
+            base.OnBeforeOnDisableOrEnterPlayMode(afterEnableCalled);
+
+            EFFECT_DOUBLE_BUFFER.Clear();
+            BACKGROUND.Clear();
+            SCREEN_READ_TEXTURE.Clear();
+            SCREEN_READ_SECOND_BUFFER.Clear();
         }
 
         protected enum BackgroundScreenShotData { Uninitialized, ExclusiveBuffer, UsingOverlayScreenGrab }

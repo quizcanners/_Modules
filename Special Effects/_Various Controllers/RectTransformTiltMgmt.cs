@@ -15,11 +15,11 @@ namespace QuizCanners.SpecialEffects
 
             Vector3 rectPos = RectTransformUtility.WorldToScreenPoint(cam, rt.position).ToVector3();
 
-            speed = Input.GetMouseButton(0) ? speed : speed * 4;
+          //  speed = Input.GetMouseButton(0) ? speed : speed * 4;
 
             mouseEffectRadius *= Mathf.Min(Screen.width, Screen.height);
 
-            if (dontTilt || !Input.GetMouseButton(0))
+            if (dontTilt)
                 targetTilt = Vector2.zero;
             else
             {
@@ -34,7 +34,7 @@ namespace QuizCanners.SpecialEffects
 
             targetTilt *= new Vector2(Screen.width, Screen.height) / mouseEffectRadius;
 
-            if (LerpUtils.IsLerpingBySpeed(ref tilt, targetTilt, speed: speed, unscaledTime: true))
+            if (QcLerp.IsLerpingBySpeed(ref tilt, targetTilt, speed: speed, unscaledTime: true))
             {
                 if (tilt.magnitude > maxTilt)
                     tilt = tilt.normalized * maxTilt;

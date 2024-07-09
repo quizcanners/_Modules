@@ -5,7 +5,7 @@ using QuizCanners.Utils;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace QuizCanners.IsItGame
+namespace QuizCanners.SavageTurret
 {
 
     public abstract class EnumeratedAssetBase<T, G> : ScriptableObject, IPEGI where T : struct, IComparable, IFormattable, IConvertible where G : Object

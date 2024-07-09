@@ -5,11 +5,11 @@ using QuizCanners.Utils;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace QuizCanners.IsItGame
+namespace QuizCanners.SavageTurret
 {
-    public abstract class EnumeratedAssetListsBase<T, G> : ScriptableObject, IPEGI where T : struct, IComparable, IFormattable, IConvertible where G : Object
+    public abstract class SO_EnumeratedAssetListsBase<T, G> : ScriptableObject, IPEGI, INeedAttention where T : struct, IComparable, IFormattable, IConvertible where G : Object
     {
-        [SerializeField] protected List<EnumeratedObjectList> enumeratedObjects = new List<EnumeratedObjectList>();
+        [SerializeField] protected List<EnumeratedObjectList> enumeratedObjects = new();
 
         public int VariantsCount(T key) 
         {
@@ -60,6 +60,15 @@ namespace QuizCanners.IsItGame
 
             _listMeta.Edit_List(enumeratedObjects).Nl();
 
+        }
+
+        public string NeedAttention()
+        {
+            foreach (var el in enumeratedObjects)
+                if (el.TryGetAttentionMessage(out var warningMsg))
+                    return warningMsg;
+
+            return null;
         }
         #endregion
     }
@@ -117,14 +126,14 @@ namespace QuizCanners.IsItGame
 
         private readonly pegi.CollectionInspectorMeta _listMeta = new("All");
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             _listMeta.Edit_List_UObj(list);
         }
 
         public string NeedAttention()
         {
-            if (pegi.NeedsAttention(list, out var message, "Sounds", canBeNull: false)) 
+            if (pegi.NeedsAttention_UObj(list, out var message, "Sounds", canBeNull: false)) 
             {
                 return message;
             }

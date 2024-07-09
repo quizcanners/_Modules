@@ -1,15 +1,23 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace QuizCanners.IsItGame
+
+namespace QuizCanners.Modules
 {
+
+    using static AddAptable;
 
     public class C_AdaptableBlock : MonoBehaviour
     {
-        public enum MegaVoxelRole { Solid, Damaged, Decorative }
+        public enum MegaVoxelRole 
+        { 
+            Solid, 
+            Damaged, 
+            Decorative 
+        }
         
         public int scale;
-        public AddCubeCfg config;
+        public SegmentCfg config;
 
         public bool AddAptCollidedWith(Vector3 other, float oScale, float myScale)
         {
@@ -37,13 +45,14 @@ namespace QuizCanners.IsItGame
 
         public void UpdateCubeConfig(List<C_AdaptableBlock> blocks)
         {
-            config.SetAllTo(AddCubeCfg.BlockSetting.Empty);
+            config.SetAllTo(BlockSetting.Empty);
 
             foreach (var t in blocks)
                 if (t.gameObject.activeInHierarchy)
                 {
                     var other = t;
                     if ((other.scale < scale) || (other == this)) continue;
+
                     if ((other.config.role != MegaVoxelRole.Solid) &&
                         (other.config.role != MegaVoxelRole.Damaged || config.role != MegaVoxelRole.Solid) &&
                         (other.config.role != MegaVoxelRole.Decorative || config.role != MegaVoxelRole.Damaged))
@@ -67,16 +76,16 @@ namespace QuizCanners.IsItGame
                     for (var x = 0; x < wid; x++)
                     for (var y = 0; y < wid; y++)
                     for (var z = 0; z < wid; z++)
-                        config.AssignValue(x + (int)dist.x, y + (int)dist.y, z + (int)dist.z, AddCubeCfg.BlockSetting.Full);
+                        config[x + (int)dist.x, y + (int)dist.y, z + (int)dist.z] = BlockSetting.Full;
                 }
         }
 
-        public bool GetProperPiece(AddCubeCfg[] adds, int category, ref int rotation, ref int meshNumber, List<C_AdaptableBlock> blocks)
+        public bool GetProperPiece(SegmentCfg[] adds, ref int rotation, ref int meshNumber, List<C_AdaptableBlock> blocks)
         {
 
             UpdateCubeConfig(blocks);
 
-            if (!config.IsVisible()) return false;
+            if (!config.IsVisible) return false;
 
             meshNumber = 0;
 
@@ -85,7 +94,6 @@ namespace QuizCanners.IsItGame
             for (var i = 0; i < adds.Length; i++)
             {
                 var addY = adds[i];
-                if (category != addY.category && (category != 0)) continue;
 
                 var newRotation = 0;
 

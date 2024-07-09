@@ -4,20 +4,43 @@ using UnityEngine;
 
 namespace QuizCanners.SpecialEffects
 {
-    public class C_BlurredSpriteWorldSpace : MonoBehaviour, IPEGI
+    public class C_BlurredSpriteWorldSpace : MonoBehaviour, IPEGI, INeedAttention
     {
         [SerializeField] private MeshRenderer _renderer;
         [SerializeField] private bool _trackMotion = true;
         [SerializeField] private bool _rotateToCamera = true;
+        [SerializeField] private bool _autoscale = true;
 
         private readonly ShaderProperty.FloatValue ROTATION = new("_Angle");
         private readonly ShaderProperty.FloatValue STRENGTH = new("_Force");
+        private readonly ShaderProperty.FloatValue VISIBILITY = new("_Visibility");
+
+        public bool SeenByCamera = true;
 
         Vector2 _previousPosition;
         Vector2 previousDiff;
         private MaterialPropertyBlock _block;
         private readonly LogicWrappers.Request _meshDataDirty = new();
-  
+
+        void OnBecameVisible()
+        {
+            SeenByCamera = true;
+        }
+
+        void OnBecameInvisible()
+        {
+            SeenByCamera = false;
+        }
+
+        public float Visibility 
+        {
+            get => VISIBILITY.latestValue;
+            set 
+            {
+                VISIBILITY.SetOn(_block, Mathf.Clamp01(value));
+                _meshDataDirty.CreateRequest();
+            }
+        }
 
 
         float Rotation01
@@ -35,6 +58,7 @@ namespace QuizCanners.SpecialEffects
             get => STRENGTH.latestValue;
             set
             {
+                value = Mathf.Clamp01(value);
                 STRENGTH.SetOn(_block, value); 
                 _meshDataDirty.CreateRequest();
             }
@@ -53,6 +77,13 @@ namespace QuizCanners.SpecialEffects
             Strength = vec.magnitude;
         }
 
+        public void Hide() 
+        {
+            Visibility = 0;
+            _renderer.SetPropertyBlock(_block);
+
+        }
+
         void OnEnable() 
         {
             _block ??= new MaterialPropertyBlock();
@@ -62,7 +93,17 @@ namespace QuizCanners.SpecialEffects
 
         void LateUpdate() 
         {
-            transform.LookAt(Camera.main.transform);
+            var inst = Singleton.Get<Singleton_CameraOperatorGodMode>(); //C_UiCameraForEffectsManagement.Camera;
+
+            if (!inst)
+                return;
+
+            transform.LookAt(inst.MainCam.transform);
+
+            if (_autoscale)
+            {
+                transform.localScale = 0.03f * Vector3.Distance(transform.position, inst.transform.position) * Vector3.one;
+            }
 
             if (_trackMotion)
             {
@@ -70,13 +111,14 @@ namespace QuizCanners.SpecialEffects
 
                 void TrackMotion()
                 {
-                    var pos = Camera.main.WorldToViewportPoint(transform.position).XY();
+                    var pos = inst.MainCam.WorldToViewportPoint(transform.position).XY();
 
                     if (pos.x < 0 || pos.x > 1 || pos.y < 0 || pos.y > 1)
                     {
                         return;
                     }
 
+                    /*
                     if (_previousPosition == pos)
                     {
                         if (previousDiff != Vector2.zero)
@@ -86,13 +128,15 @@ namespace QuizCanners.SpecialEffects
                         }
 
                         return;
-                    }
+                    }*/
 
                     pos.x = 1 - pos.x;
 
                     var diff =  _previousPosition - pos;
-                    previousDiff = diff; // (previousDiff * 2f + diff) * 0.3333f;
-                    VectorToBlur(previousDiff / (Time.deltaTime + 0.01f));
+
+                    var smoothedDiff = (diff + previousDiff) * 0.5f;
+                    VectorToBlur(smoothedDiff / (Time.deltaTime + 0.001f));
+                    previousDiff = diff;
                     _previousPosition = pos;
                 }
             }
@@ -102,13 +146,17 @@ namespace QuizCanners.SpecialEffects
 
         }
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             pegi.Nl();
 
             var changes = pegi.ChangeTrackStart();
 
             _block ??= new MaterialPropertyBlock();
+
+            var vis = Visibility;
+            if ("Visibility".PegiLabel().Edit_01(ref vis).Nl())
+                Visibility = vis;
 
             "Rotate to camera".PegiLabel().ToggleIcon(ref _rotateToCamera).Nl();
             "Track Motion".PegiLabel().ToggleIcon(ref _trackMotion).Nl();
@@ -138,6 +186,14 @@ namespace QuizCanners.SpecialEffects
         void Reset()
         {
             _renderer = GetComponent<MeshRenderer>();
+        }
+
+        public string NeedAttention()
+        {
+           // if (Application.isPlaying && !C_UiCameraForEffectsManagement.Camera)
+             //   return "NO Ui Camera";
+
+            return null;
         }
     }
 

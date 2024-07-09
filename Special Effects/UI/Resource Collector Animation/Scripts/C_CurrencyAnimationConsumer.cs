@@ -30,7 +30,7 @@ namespace QuizCanners.SpecialEffects
             {
                 if (_upscale > 1)
                 {
-                    _upscale = LerpUtils.LerpBySpeed(from: _upscale, to: 1, speed: UPSCALE_FADE_SPEED, unscaledTime: true);
+                    _upscale = QcLerp.LerpBySpeed_Unscaled(from: _upscale, to: 1, speed: UPSCALE_FADE_SPEED);
                     rectTransform.localScale = Vector3.one * _upscale;
                 }
             }
@@ -55,7 +55,7 @@ namespace QuizCanners.SpecialEffects
 
         #region Inspector
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             pegi.Nl();
             "Target".PegiLabel().Edit(ref rectTransform).Nl();

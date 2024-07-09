@@ -11,7 +11,7 @@ namespace QuizCanners.SpecialEffects
         public override bool Raycast(Vector2 sp, Camera eventCamera) => true;
         protected override void OnPopulateMesh(VertexHelper vh) => vh.Clear();
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             var ico = raycastTarget;
             if ("Raycast Target".PegiLabel().ToggleIcon(ref ico))

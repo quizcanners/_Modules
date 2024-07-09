@@ -222,7 +222,7 @@
 
 				UNITY_APPLY_FOG(i.fogCoord, col);
 
-				BleedAndBrightness(col, 1, i.texcoord.xy*100);
+				//BleedAndBrightness(col, 1, i.texcoord.xy*100);
 
 				return col;
 

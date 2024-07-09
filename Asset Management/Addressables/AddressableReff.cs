@@ -6,7 +6,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using Object = UnityEngine.Object;
 
-namespace QuizCanners.IsItGame
+namespace QuizCanners.SavageTurret
 {
     public abstract class AddressableBase : IPEGI, IDisposable
     {

@@ -33,7 +33,7 @@ namespace QuizCanners.SpecialEffects
             {
 
 
-                if (LerpUtils.IsLerpingBySpeed(ref transparency, isFadingOut ? 0f : 1f, isFadingOut ? 8f : 2f, unscaledTime: true)
+                if (QcLerp.IsLerpingBySpeed(ref transparency, isFadingOut ? 0f : 1f, isFadingOut ? 8f : 2f, unscaledTime: true)
                     || transparency > 0)
                 {
                    // soundTimer -= Time.unscaledDeltaTime;

@@ -65,7 +65,10 @@ namespace QuizCanners.SpecialEffects
 
             ValueToDeliver = value;
 
-            _innitialAxxeleration = UnityEngine.Random.insideUnitSphere.XY() * INITIAL_AXXELERATION;
+            var screen = new Vector2(Screen.width, Screen.height);
+            var offCenter = ScreenPosition - screen * 0.5f;
+
+            _innitialAxxeleration = (UnityEngine.Random.insideUnitSphere.XY() - (offCenter / screen)*2f) * INITIAL_AXXELERATION;
             _speed = 0;
             _fadeInalpha = 0;
 
@@ -73,17 +76,17 @@ namespace QuizCanners.SpecialEffects
 
         void Update()
         {
-            _speed = LerpUtils.LerpBySpeed(_speed, MAX_SPEED, MAX_SPEED, unscaledTime: true);
+            _speed = QcLerp.LerpBySpeed_Unscaled(_speed, MAX_SPEED, MAX_SPEED);
 
             if (_innitialAxxeleration.magnitude > 0)
             {
                 ScreenPosition += _innitialAxxeleration * Time.unscaledDeltaTime;
-                _innitialAxxeleration = LerpUtils.LerpBySpeed(_innitialAxxeleration, Vector2.zero, INITIAL_AXXELERATION_FADE_OUT_SPEED, unscaledTime: true);
+                _innitialAxxeleration = QcLerp.LerpBySpeed(_innitialAxxeleration, Vector2.zero, INITIAL_AXXELERATION_FADE_OUT_SPEED, unscaledTime: true);
             }
 
             var target = Currency.TargetStack.GetTargetPosition();
 
-            ScreenPosition = LerpUtils.LerpBySpeed(ScreenPosition, target, _speed, unscaledTime: true);
+            ScreenPosition = QcLerp.LerpBySpeed(ScreenPosition, target, _speed, unscaledTime: true);
 
 
 
@@ -106,7 +109,7 @@ namespace QuizCanners.SpecialEffects
 
                 if (_fadeInalpha < 1)
                 {
-                    _fadeInalpha = LerpUtils.LerpBySpeed(_fadeInalpha, 1, FADE_IN_SPEED, unscaledTime: true);
+                    _fadeInalpha = QcLerp.LerpBySpeed_Unscaled(_fadeInalpha, 1, FADE_IN_SPEED);
                 }
 
                 float fadeOutAlpha = Mathf.Clamp01(dist / FADE_OUT_DISTANCE);
@@ -128,7 +131,7 @@ namespace QuizCanners.SpecialEffects
 
         Vector2 deltaPos;
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             if (Application.isPlaying == false) 
             {

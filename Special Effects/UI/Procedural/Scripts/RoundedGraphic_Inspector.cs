@@ -79,7 +79,7 @@ namespace QuizCanners.SpecialEffects
 
         [SerializeField] private EnterExitContext _enteredContent = new EnterExitContext();
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             using (_enteredContent.StartContext())
             {
@@ -198,7 +198,7 @@ namespace QuizCanners.SpecialEffects
                     if (mat && (linked == mat.IsKeywordEnabled(UNLINKED_VERTICES)))
                         mat.SetShaderKeyword(UNLINKED_VERTICES, !linked);
 
-                    if (Toggle(ref linked, Icon.Link, Icon.UnLinked))
+                    if (Toggle(ref linked, Icon.Link, Icon.UnLinked).Nl())
                         LinkedCorners = linked;
 
                     for (var i = 0; i < _roundedCournersPixels.Length; i++)

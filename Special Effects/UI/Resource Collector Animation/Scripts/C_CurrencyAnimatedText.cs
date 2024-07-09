@@ -1,16 +1,16 @@
+using QuizCanners.Inspect;
 using QuizCanners.Utils;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace QuizCanners.SpecialEffects
 {
-    public class C_CurrencyAnimatedText : MonoBehaviour
+    public class C_CurrencyAnimatedText : MonoBehaviour, IPEGI, INeedAttention
     {
-        [SerializeField] private Text _text;
+        [SerializeField] private TextMeshProUGUI _text;
         [SerializeField] private SO_CurrencyAnimationPrototype _currency;
 
-        private Gate.Double _valueGate = new Gate.Double();
-
+        private readonly Gate.Double _valueGate = new();
 
         private void LateUpdate()
         {
@@ -24,8 +24,31 @@ namespace QuizCanners.SpecialEffects
 
         private void Reset()
         {
-            _text = GetComponent<Text>();
+            _text = GetComponent<TextMeshProUGUI>();
         }
 
+        #region Inspector
+        void IPEGI.Inspect()
+        {
+            pegi.Nl();
+            "Text".PegiLabel().Edit_IfNull(ref _text, gameObject).Nl();
+            "Curence".PegiLabel().Edit(ref _currency).Nl();
+        }
+
+        public string NeedAttention()
+        {
+            if (!_text)
+                return "Text not assigned";
+
+            if (!_currency)
+                return "Currency not assigned";
+
+            return null;
+        }
+        #endregion
+
     }
+
+    [PEGI_Inspector_Override(typeof(C_CurrencyAnimatedText))] 
+    internal class C_CurrencyAnimatedTextDrawer : PEGI_Inspector_Override { }
 }

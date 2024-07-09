@@ -2,7 +2,7 @@
 {
 	Properties{
 		[PerRendererData][NoScaleOffset]_MainTex("Noise (RGB)", 2D) = "gray" {}
-		_Edges("Sharpness", Range(0,1)) = 0.5
+		_Edges("Sharpness", Range(0,25)) = 0.5
 		_ColorC("Center", Color) = (1,1,1,1)
 		//_ColorE("Edge", Color) = (1,1,1,1)
 
@@ -110,9 +110,11 @@
 
 					float dx = abs(ddx(o.texcoord.x));
 					float dy = abs(ddy(o.texcoord.y));
-					float mip = (dx + dy) * 200;
+					float mip = (dx + dy);
 
-					_Edges /= 1 + mip * mip; //LOD
+					//_Edges /= 1 + mip * mip; //LOD
+					//float pz = 1 + _Edges * 32;
+
 
 					float4 _ProjTexPos =	o.projPos;
 					float _Courners =		o.texcoord.w;
@@ -173,9 +175,9 @@
 
 					float fade = max(forFade.x, forFade.y);
 
-					float alpha = max(0, 1 - max(fade, dist));
+					//float alpha = max(0, );
 
-					alpha = min(1, pow(alpha * o.precompute.z, o.texcoord.z));
+					float alpha = smoothstep(0, mip * _Edges, 1 - max(fade, dist));
 
 					float4 col = o.color;
 
@@ -184,9 +186,6 @@
 					float2 sUV = o.screenPos.xy / o.screenPos.w;
 
 					#if FADE
-
-							
-
 							float edge =  1-
 								saturate((sUV.x - o.fade.x) * _FadeEdge)
 								* saturate((sUV.y - o.fade.y) * _FadeEdge)

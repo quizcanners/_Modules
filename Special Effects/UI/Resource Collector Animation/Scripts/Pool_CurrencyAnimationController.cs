@@ -13,23 +13,26 @@ namespace QuizCanners.SpecialEffects
     [ExecuteAlways]
     public class Pool_CurrencyAnimationController : Singleton.BehaniourBase
     {
-        private readonly Dictionary<SO_CurrencyAnimationPrototype, CurrencyHub> _currencies = new Dictionary<SO_CurrencyAnimationPrototype, CurrencyHub>();
+        private readonly Dictionary<SO_CurrencyAnimationPrototype, CurrencyHub> _currencies = new();
         [SerializeField] private SO_CurrencyAnimationSettings _settings;
         [SerializeField] private C_CurrencyAnimationElement _prefab;
         [SerializeField] private RectTransform _rectTransform;
         [SerializeField] private AudioSource _source;
         [SerializeField] private Canvas _canvas;
 
-        private static Pool_CurrencyAnimationController Instance => Singleton.Get<Pool_CurrencyAnimationController>();
+        private readonly List<C_CurrencyAnimationElement> _instances = new();
+        private readonly List<C_CurrencyAnimationElement> _pool = new();
+        private readonly LogicWrappers.TimeFixedSegmenter _spawnings = new(unscaledTime: true);
 
-
-        private readonly List<C_CurrencyAnimationElement> _instances = new List<C_CurrencyAnimationElement>();
-        private readonly List<C_CurrencyAnimationElement> _pool = new List<C_CurrencyAnimationElement>();
-        private readonly LogicWrappers.TimeFixedSegmenter _spawnings = new LogicWrappers.TimeFixedSegmenter(unscaledTime: true);
-
-        private readonly Gate.UnityTimeUnScaled _spawnSoundDelay = new Gate.UnityTimeUnScaled(Gate.InitialValue.StartArmed);
+        private readonly Gate.UnityTimeUnScaled _spawnSoundDelay = new(Gate.InitialValue.StartArmed);
 
         private int carousel = 0;
+
+        public void SetTargetValue(SO_CurrencyAnimationPrototype currency, double targetValue) 
+        {
+            CurrencyHub cur = _currencies.GetOrCreate(currency);
+            cur.Value.TargetValue = targetValue;
+        }
 
         public double GetAnimatedValue(SO_CurrencyAnimationPrototype currency)
         {
@@ -39,7 +42,6 @@ namespace QuizCanners.SpecialEffects
                 return cur.Value.GetWithoutUpdating();
             else
                 return cur.Value.UpdateAndGet();
-
         }
 
         public double GetAnimatedValue(SO_CurrencyAnimationPrototype currency, double targetValue)
@@ -99,7 +101,7 @@ namespace QuizCanners.SpecialEffects
             if (_source && _spawnSoundDelay.TryUpdateIfTimePassed(_settings.SOUND_EFFECT_MIN_GAP))
             {
                 if (element.Prototype.TryGetRandomConsumeSound(out var clip))
-                    _source.PlayOneShot(clip);
+                    _source.PlayOneShot(clip, volumeScale: element.Prototype.OnConsumeVolume);
             }
 
             element.Currency.ReturnValue((int)element.ValueToDeliver);
@@ -146,12 +148,12 @@ namespace QuizCanners.SpecialEffects
                     }
 
                     isnt.Restart(currencyState, currencyPrototype, value, _rectTransform);
-                    _spawnings.Update(_settings.DELAY_BETWEEN_ANIMATIONS);
+                    _spawnings.Update_KeepFraction(_settings.DELAY_BETWEEN_ANIMATIONS);
 
                     if (_source && _spawnSoundDelay.TryUpdateIfTimePassed(_settings.SOUND_EFFECT_MIN_GAP))
                     {
                         if (currencyPrototype.TryGetRandomCreateSound(out var clip))
-                            _source.PlayOneShot(clip);
+                            _source.PlayOneShot(clip, volumeScale: currencyPrototype.OnCreateVolume);
                     }
 
                 } else 
@@ -173,7 +175,7 @@ namespace QuizCanners.SpecialEffects
         #region Inspector
 
         private readonly pegi.EnterExitContext _context = new();
-        private readonly pegi.CollectionInspectorMeta _currenciesMeta = new pegi.CollectionInspectorMeta("Currencies");
+        private readonly pegi.CollectionInspectorMeta _currenciesMeta = new("Currencies");
         private SO_CurrencyAnimationPrototype _testKey;
 
         public override void Inspect()
@@ -235,9 +237,9 @@ namespace QuizCanners.SpecialEffects
 
         internal class CurrencyHub : IPEGI, IPEGI_ListInspect
         {
-            public AnimatedValue.Double Value = new AnimatedValue.Double();
+            public AnimatedValue.Double Value = new();
             public AnimationRequest Request;
-            public readonly AnimationTarget TargetStack = new AnimationTarget();
+            public readonly AnimationTarget TargetStack = new();
             private int _valueInAnimation;
 
             public bool IsAnimating => _valueInAnimation > 0;
@@ -267,7 +269,12 @@ namespace QuizCanners.SpecialEffects
 
                 int optimal = (Mgmt._settings.MAX_ELEMENTS - instancesCount) / 2;
 
-                _elementsToSpawn = Math.Clamp(value: 4 + Mathf.RoundToInt(optimal * fraction), min: 1, max: Math.Min(optimal, deltaValue));
+                int max = Math.Min(optimal, deltaValue);
+
+                if (max <= 2)
+                    _elementsToSpawn = 5;
+                else 
+                    _elementsToSpawn = Math.Clamp(value: 4 + Mathf.RoundToInt(optimal * fraction), min: 1, max: max);
             }
 
             internal void ReturnValue(int value) 
@@ -304,7 +311,7 @@ namespace QuizCanners.SpecialEffects
 
             #region Inspector
 
-            public void Inspect()
+            void IPEGI.Inspect()
             {
                 "Request Valid: {0}".F(IsValid).PegiLabel().Nl();
                 Value.Nested_Inspect().Nl();
@@ -334,7 +341,7 @@ namespace QuizCanners.SpecialEffects
                 public RectTransform Origin;
                 private Vector2 _lastPosition;
                 private Vector2 _rectSize;
-                private readonly Gate.UnityTimeUnScaled _unscaledTime = new(initialValue: Gate.InitialValue.InitializeOnCreate);
+                private readonly Gate.UnityTimeUnScaled _unscaledTime = new(initialValue: Gate.InitialValue.Uninitialized);
 
                 public bool IsValid => _unscaledTime.GetDeltaWithoutUpdate() < 0.5f;
 
@@ -352,7 +359,15 @@ namespace QuizCanners.SpecialEffects
                         }
                     }
 
-                    return _lastPosition + new Vector2(Random.Range(-0.25f, 0.25f), Random.Range(-0.25f, 0.25f)) * _rectSize;
+                    var pos = _lastPosition + new Vector2(Random.Range(-0.25f, 0.25f), Random.Range(-0.25f, 0.25f)) * _rectSize;
+
+                    const float BORDER = 25;
+
+                    pos.x = Mathf.Clamp(pos.x, 0 + BORDER, Screen.width - BORDER);
+                    pos.y = Mathf.Clamp(pos.y, 0 + BORDER, Screen.height - BORDER);
+
+
+                    return pos;
                 }
 
                 public AnimationRequest(RectTransform origin)
@@ -384,9 +399,9 @@ namespace QuizCanners.SpecialEffects
 
             public class AnimationTarget
             {
-                private List<C_CurrencyAnimationConsumer> _targetStack = new List<C_CurrencyAnimationConsumer>();
+                private readonly List<C_CurrencyAnimationConsumer> _targetStack = new();
                 private Vector2 _lastPosition;
-                private Gate.Frame _positionUpdateGate = new Gate.Frame();
+                private readonly Gate.Frame _positionUpdateGate = new();
 
                 private C_CurrencyAnimationConsumer Target => _targetStack.Count > 0 ? _targetStack.Last() : null;
 

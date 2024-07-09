@@ -6,7 +6,7 @@ namespace QuizCanners.SpecialEffects
     {
         public string InspectedCategory => Categories.SCENE_MGMT;
 
-        public bool IsSingletonActive() => true;
+        public bool IsSingletonActive { get => true; set { } }
 
         protected void OnEnable() 
         {

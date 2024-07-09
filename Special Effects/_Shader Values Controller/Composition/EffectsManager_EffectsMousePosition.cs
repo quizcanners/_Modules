@@ -7,11 +7,10 @@ using QuizCanners.Lerp;
 
 namespace QuizCanners.SpecialEffects
 {
-
-    public partial class Singleton_SpecialEffectShaders
+    public static partial class Effects
     {
         [Serializable]
-        public class EffectsMousePositionManager : IPEGI, IPEGI_ListInspect
+        public class MousePositionManager : IPEGI, IPEGI_ListInspect
         {
             [SerializeField] private bool _enabled = true;
 
@@ -20,9 +19,9 @@ namespace QuizCanners.SpecialEffects
             [NonSerialized] protected bool downClickFullyShown = true;
             [NonSerialized] protected Vector2 mouseDownPosition;
 
-            protected readonly ShaderProperty.Feature UseMousePosition = new ShaderProperty.Feature("_qcPp_FEED_MOUSE_POSITION");
-            protected readonly ShaderProperty.VectorValue mousePosition = new ShaderProperty.VectorValue("_qcPp_MousePosition");
-            protected readonly ShaderProperty.VectorValue mouseDynamics = new ShaderProperty.VectorValue("_qcPp_MouseDynamics");
+            protected readonly ShaderProperty.Feature UseMousePosition = new("_qcPp_FEED_MOUSE_POSITION");
+            protected readonly ShaderProperty.VectorValue mousePosition = new("_qcPp_MousePosition");
+            protected readonly ShaderProperty.VectorValue mouseDynamics = new("_qcPp_MouseDynamics");
 
             public bool Enabled 
             {
@@ -54,14 +53,14 @@ namespace QuizCanners.SpecialEffects
                         downClickFullyShown = false;
                     }
 
-                    mouseDownStrengthOneDirectional = LerpUtils.LerpBySpeed(mouseDownStrengthOneDirectional,
+                    mouseDownStrengthOneDirectional = QcLerp.LerpBySpeed_Unscaled(mouseDownStrengthOneDirectional,
                         down ? 0 : 1,
-                        down ? 4f : (3f - mouseDownStrengthOneDirectional * 3f), unscaledTime: true);
+                        down ? 4f : (3f - mouseDownStrengthOneDirectional * 3f));
 
-                    mouseDownStrength = LerpUtils.LerpBySpeed(mouseDownStrength,
+                    mouseDownStrength = QcLerp.LerpBySpeed_Unscaled(mouseDownStrength,
                         downClickFullyShown ? 0 :
                         (down ? 0.9f : 1f),
-                        (down) ? 2 : (downClickFullyShown ? 0.75f : 2.5f), unscaledTime: true);
+                        (down) ? 2 : (downClickFullyShown ? 0.75f : 2.5f));
 
                     if (mouseDownStrength > 0.99f)
                         downClickFullyShown = true;
@@ -76,7 +75,7 @@ namespace QuizCanners.SpecialEffects
             }
 
             #region Inspector
-            public void Inspect()
+            void IPEGI.Inspect()
             {
                 if ("Mouse Position to shader".PegiLabel().ToggleIcon(ref _enabled, hideTextWhenTrue: true).Nl())
                     Enabled = _enabled;

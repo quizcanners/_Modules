@@ -2,17 +2,19 @@
 using System.Collections.Generic;
 using QuizCanners.Inspect;
 using QuizCanners.Utils;
+using UnityEditor;
 using UnityEngine;
 using static QuizCanners.Utils.ShaderProperty;
 
 namespace QuizCanners.SpecialEffects
 {
     [ExecuteAlways]
-    public class MergingTerrainController : MonoBehaviour, IPEGI
+    public class MergingTerrainController : MonoBehaviour, IPEGI, INeedAttention
     {
-        public List<ChannelSetsForDefaultMaps> mergeSubMasks;
+        public SO_MergingTerrainLayers mergeSubMasks;
         public Terrain terrain;
         public Texture2D terrainHeightTexture;
+        public Texture2D terrainControlTexture;
 
         [SerializeField] private Vector4 _terrainScale;
         [SerializeField] private Vector4 _terrainTiling;
@@ -25,12 +27,107 @@ namespace QuizCanners.SpecialEffects
         public static readonly VectorValue TerrainScale = new("_qcPp_mergeTerrainScale");
         public static readonly TextureValue TerrainHeight = new("_qcPp_mergeTerrainHeight");
         public static readonly TextureValue TerrainControlMain = new(TERRAIN_CONTROL_TEXTURE);
+        public static readonly Feature MERGING_TERRAIN_ON = new ("QC_MERGING_TERRAIN");
 
+
+        private readonly TexAndProp AlbedoArray = new("Qc_TerrainAlbedos", isColor: true);
+        private readonly TexAndProp BumpMapsArray = new("Qc_TerrainMaps", isColor: false);
+        private readonly TexAndProp MADS_Array = new("Qc_TerrainMADS", isColor: false);
+        private readonly VectorArrayValue SPLAT_TILING = new("Qc_mergeSplatTiling");
+
+        private class TexAndProp : IPEGI
+        {
+            private string _name;
+            private RenderTexture array;
+            private TextureValue property; // = new("Qc_TerrainAlbedos");
+            private bool _isColor;
+            private readonly LogicWrappers.Request _mipsDirty = new();
+
+            const int MAPS_COUNT = 5;
+
+            public TextureValue GetPRoperty()=> property ??= new TextureValue(_name);
+
+            public void Clear() 
+            {
+                if (array)
+                {
+                    array.DestroyWhatever();
+                    array = null;
+                }
+            }
+
+            void GetTextureArray(out RenderTexture tex)
+            {
+                if (array == null)
+                {
+                    array = new RenderTexture(width: 1024, 1024, depth: 0, RenderTextureFormat.ARGB32)
+                    {
+                        useMipMap = true,
+                        autoGenerateMips = false,
+                        dimension = UnityEngine.Rendering.TextureDimension.Tex2DArray,
+                        volumeDepth = MAPS_COUNT,
+                        name = _name,
+                        wrapMode = TextureWrapMode.Repeat, 
+                    };
+
+                }
+
+                tex = array;
+            }
+
+            public void SetTextureArray()
+            {
+                if (array)
+                {
+                    if (_mipsDirty.TryUseRequest())
+                    {
+                        array.GenerateMips();
+                    }
+
+                    GetPRoperty().SetGlobal(array);
+                }
+            }
+
+            public void Set(Texture tex, int index)
+            {
+                GetTextureArray(out RenderTexture target);
+                Graphics.Blit(tex, target, sourceDepthSlice: 0, destDepthSlice: index);
+                _mipsDirty.CreateRequest();
+                
+            }
+
+
+            public override string ToString() => "Tex {0}[{1}]".F(_name, MAPS_COUNT);
+
+            void IPEGI.Inspect()
+            {
+                ToString().PegiLabel(pegi.Styles.BaldText).Nl();
+                "Tex".PegiLabel().Edit(ref array).Nl();
+
+
+            }
+
+            public TexAndProp (string name, bool isColor) 
+            {
+                _name = name;
+                _isColor = isColor;
+            }
+
+        }
 
         private void OnEnable()
         {
+            UpdateSplatTextures(updateOnTerrainComponent: false);
             UpdateShaderValues();
-            UpdateSplatTextures();
+            MERGING_TERRAIN_ON.Enabled = true;
+        }
+
+        private void OnDisable()
+        {
+            MERGING_TERRAIN_ON.Enabled = false;
+            AlbedoArray.Clear();
+            BumpMapsArray.Clear();
+            MADS_Array.Clear();
         }
 
         private void UnityTerrain_To_HeightTexture()
@@ -62,7 +159,7 @@ namespace QuizCanners.SpecialEffects
                     var dx = ((float)x) / textureSize;
                     var dy = ((float)y) / textureSize;
 
-                    var v3 = td.GetInterpolatedNormal(dx, dy); // + Vector3.one * 0.5f;
+                    var v3 = td.GetInterpolatedNormal(dx, dy) * 0.5f; // + Vector3.one * 0.5f;
 
                     tmpCol.r = v3.x + 0.5f;
                     tmpCol.g = v3.y + 0.5f;
@@ -120,18 +217,45 @@ namespace QuizCanners.SpecialEffects
             terrain.terrainData.SetHeights(0, 0, heights);
         }
 
-        private void UpdateSplatTextures()
+        private void UpdateSplatTextures(bool updateOnTerrainComponent = false)
         {
-         
-
-            if (mergeSubMasks.IsNullOrEmpty())
+            if (!mergeSubMasks)
                 return;
 
-            TerrainLayer[] prots = new TerrainLayer[mergeSubMasks.Count]; // terrain.terrainData.terrainLayers;
+            var masks = mergeSubMasks.mergeSubMasks;
 
-            for (var i = 0; i < mergeSubMasks.Count; i++)
+            if (!updateOnTerrainComponent)
             {
-                prots[i] = mergeSubMasks[i].UpdateSplatTextures(i);
+                Vector4[] tiling = new Vector4[5];
+
+                for (var i = 0; i < masks.Count; i++)
+                {
+                    var m = masks[i];
+                    m.UpdateTextures(i);
+
+                    AlbedoArray.Set(m.colorTexture, i);
+                    BumpMapsArray.Set(m.normalMap, i);
+                    MADS_Array.Set(m.MADS, i);
+                    AlbedoArray.SetTextureArray();
+                    BumpMapsArray.SetTextureArray();
+                    MADS_Array.SetTextureArray();
+
+                    if (i < 5) 
+                    {
+                        tiling[i] = new Vector4(m.Tiling, m.Tiling);
+                    }
+                }
+
+                SPLAT_TILING.GlobalValue = tiling;
+
+                return;
+            }
+
+            TerrainLayer[] prots = new TerrainLayer[masks.Count]; // terrain.terrainData.terrainLayers;
+
+            for (var i = 0; i < masks.Count; i++)
+            {
+                prots[i] = masks[i].UpdateTexturesToLayers(i);
             }
 
 
@@ -181,6 +305,9 @@ namespace QuizCanners.SpecialEffects
             TerrainTiling.GlobalValue = _terrainTiling;
             TerrainPosition.GlobalValue = transform.position.ToVector4(tilingY);
             TerrainHeight.GlobalValue = terrainHeightTexture;
+
+            if (terrainControlTexture)
+                TerrainControlMain.GlobalValue = terrainControlTexture;
         }
 
         private void CreateTerrainHeightTexture()
@@ -190,8 +317,11 @@ namespace QuizCanners.SpecialEffects
 
             var size = terrain.terrainData.heightmapResolution - 1;
 
-            terrainHeightTexture = new Texture2D(size, size, TextureFormat.RGBA32, false, true);
-            terrainHeightTexture.name = gameObject.scene.name + "-" + TerrainHeight.ToString();
+            terrainHeightTexture = new Texture2D(size, size, TextureFormat.RGBA32, false, true)
+            {
+                name = gameObject.scene.name + "-" + TerrainHeight.ToString()
+            };
+
             terrainHeightTexture.Apply(true, false);
 
             UnityTerrain_To_HeightTexture();
@@ -225,13 +355,14 @@ namespace QuizCanners.SpecialEffects
 
         #region Inspector
 
-        private readonly pegi.CollectionInspectorMeta _collectionMeta = new pegi.CollectionInspectorMeta("Merge Sub Masks");
-        private readonly pegi.EnterExitContext _context = new pegi.EnterExitContext();
+        private readonly pegi.EnterExitContext _context = new();
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             using (_context.StartContext())
             {
+                var anyChanges = pegi.ChangeTrackStart();
+
                 pegi.Nl();
 
                 if (_context.IsAnyEntered == false)
@@ -245,9 +376,7 @@ namespace QuizCanners.SpecialEffects
 
                     pegi.Nl();
 
-                    "Height Texture".PegiLabel(70).Edit(ref terrainHeightTexture).Nl();
-
-                 
+                    "Control Texture".PegiLabel().Edit(ref terrainControlTexture).Nl();
 
                     if (!terrainHeightTexture)
                     {
@@ -255,11 +384,7 @@ namespace QuizCanners.SpecialEffects
                     }
                     else
                     {
-                        if ("Tex2D To Terrain".PegiLabel().ClickConfirm(confirmationTag: "Load Terrain From Texture").Nl())
-                            TerrainHeightTexture_To_UnityTerrain();
 
-                        if ("Terrain To Tex2D".PegiLabel().Click().Nl())
-                            UnityTerrain_To_HeightTexture();
 
                         if (changed | "Update Global Values".PegiLabel().Click().Nl())
                             UpdateShaderValues();
@@ -274,20 +399,56 @@ namespace QuizCanners.SpecialEffects
                 }
                 pegi.Nl();
 
+                if ("Height Texture".PegiLabel().IsEntered().Nl())
+                {
+                    "Height Texture".PegiLabel(70).Edit(ref terrainHeightTexture).Nl();
+
+
+                    if (terrain)
+                    {
+                        if ("Tex2D To Terrain".PegiLabel().ClickConfirm(confirmationTag: "Load Terrain From Texture").Nl())
+                            TerrainHeightTexture_To_UnityTerrain();
+
+                        if ("Terrain To Tex2D".PegiLabel().Click().Nl())
+                            UnityTerrain_To_HeightTexture();
+                    }
+                }
+
 
                 if ("Splat".PegiLabel().IsEntered().Nl())
                 {
                     var changed = pegi.ChangeTrackStart();
 
-                    _collectionMeta.Edit_List(mergeSubMasks).Nl(UpdateSplatTextures);
+                    "Layers".PegiLabel().Edit_Inspect(ref mergeSubMasks).Nl();
 
-                    if (changed | "Update".PegiLabel().Click())
+                    if (mergeSubMasks && changed)
                     {
                         UpdateSplatTextures();
                     }
                 }
 
+                if ("Arrays".PegiLabel().IsEntered().Nl()) 
+                {
+                    AlbedoArray.Nested_Inspect().Nl();
+                    BumpMapsArray.Nested_Inspect().Nl();
+                    MADS_Array.Nested_Inspect().Nl();
+                }
+
+                if (anyChanges)
+                    UpdateShaderValues();
+
             }
+        }
+
+        public string NeedAttention()
+        {
+            if (!terrainHeightTexture)
+                return "No Height Texture";
+
+            if (terrainHeightTexture.wrapMode != TextureWrapMode.Clamp)
+                return "terrain Height Wrap better be Clamp";
+
+                return null;
         }
 
 
@@ -296,366 +457,6 @@ namespace QuizCanners.SpecialEffects
 
 
 
-        [Serializable]
-        public class ChannelSetsForDefaultMaps : IPEGI, IGotName, IPEGI_ListInspect
-        {
-            public const string TERRAIN_SPLAT_DIFFUSE = "_qcPp_mergeSplat_";
-            public const string TERRAIN_NORMAL_MAP = "_qcPp_mergeSplatN_";
-            public const string TILING = "_qcPp_mergeSplatTiling_";
-
-            public string productName;
-            public Texture2D colorTexture;
-            public Texture2D height;
-            public Texture2D normalMap;
-            public Texture2D smooth;
-            public Texture2D ambient;
-            public Texture2D reflectiveness;
-
-            public Texture2D Product_colorWithAlpha;
-            public Texture2D Product_combinedBump;
-            public int Size = 1024;
-            public float Tiling = 0.1f;
-            public float NormalStrength = 1;
-
-            private TextureValue Diffuse;
-            private TextureValue Normal;
-            private VectorValue TilingValue;
-
-            internal TerrainLayer UpdateSplatTextures(int index) 
-            {
-                if (TilingValue == null)
-                    TilingValue = new VectorValue(TILING + index);
-
-                TilingValue.GlobalValue = new Vector4(Tiling, Tiling);
-
-                if (Product_colorWithAlpha)
-                {
-                    if (Diffuse == null)
-                        Diffuse = new TextureValue(TERRAIN_SPLAT_DIFFUSE + index);
-
-                    Diffuse.GlobalValue = Product_colorWithAlpha;
-                }
-
-                if (Product_combinedBump)
-                {
-                    if (Normal == null)
-                        Normal = new TextureValue(TERRAIN_NORMAL_MAP + index);
-
-                    Normal.GlobalValue = Product_combinedBump;
-                }
-
-                return new TerrainLayer() 
-                {
-                    diffuseTexture = Product_colorWithAlpha,
-                    normalMapTexture = Product_combinedBump,
-                };
-            }
-
-
-
-            #region Inspector
-
-            public string NameForInspector
-            {
-                get { return productName; }
-                set { productName = value; }
-            }
-
-            public void InspectInList(ref int edited, int ind)
-            {
-                this.inspect_Name();
-
-                if (Product_colorWithAlpha && !Product_colorWithAlpha.name.Equals(productName))
-                {
-                    if (Icon.Refresh.Click("Set Name"))
-                        productName = Product_colorWithAlpha.name;
-                } else if (colorTexture && !colorTexture.name.Equals(productName) && Icon.Refresh.Click("Set Name"))
-                    productName = colorTexture.name;
-
-                if (!Product_colorWithAlpha)
-                    "COl".PegiLabel(40).Edit(ref Product_colorWithAlpha);
-                else
-                    if (!Product_combinedBump)
-                    "CMB".PegiLabel(40).Edit(ref Product_combinedBump);
-
-                pegi.ClickHighlight(Product_colorWithAlpha);
-                pegi.ClickHighlight(Product_combinedBump);
-
-                if (Icon.Enter.Click())
-                    edited = ind;
-            }
-
-            public void Inspect()
-            {
-                if (Diffuse != null)
-                    Diffuse.ToString().PegiLabel().Write_ForCopy().Nl();
-                else
-                    (TERRAIN_SPLAT_DIFFUSE + "<index>").PegiLabel().Write_ForCopy().Nl();
-
-                if (Normal != null)
-                    Normal.ToString().PegiLabel().Write_ForCopy().Nl();
-                else
-                    (TERRAIN_NORMAL_MAP + "<index>").PegiLabel().Write_ForCopy().Nl();
-
-                "Color".PegiLabel(90).Edit(ref colorTexture).Nl();
-                "Height".PegiLabel(90).Edit(ref height).Nl();
-                if (!normalMap && height)
-                    "Normal from height strength".PegiLabel().Edit(ref NormalStrength, 0, 1f).Nl();
-                "Bump".PegiLabel(90).Edit(ref normalMap).Nl();
-
-                "Smooth".PegiLabel(90).Edit(ref smooth).Nl();
-                "Ambient Occlusion".PegiLabel(90).Edit(ref ambient).Nl();
-                "Reflectivness".PegiLabel(110).Edit(ref reflectiveness).Nl();
-
-                "Size".PegiLabel().Edit(ref Size).Nl();
-
-                "Tiling".PegiLabel().Edit(ref Tiling).Nl();
-
-                if (Size < 8)
-                    "Size is too small".PegiLabel().WriteWarning();
-                else
-                if (!Mathf.IsPowerOfTwo(Size))
-                    "Size is not power of two".PegiLabel().WriteWarning();
-#if UNITY_EDITOR
-                else if ("Generate Mask".PegiLabel().ClickConfirm(confirmationTag: "Recombine Textures"))
-                {
-                    Product_combinedBump = NormalMapFrom(NormalStrength, height, normalMap, ambient, productName, Product_combinedBump);
-                   // if (colorTexture != null)
-                     //   Product_colorWithAlpha = GlossToAlpha(smooth, colorTexture, productName);
-
-                }
-#endif
-
-                pegi.Nl();
-
-                "COLOR+GLOSS".PegiLabel(120).Edit(ref Product_colorWithAlpha).Nl();
-                "BUMP+HEIGHT+AO".PegiLabel(120).Edit(ref Product_combinedBump).Nl();
-            }
-
-
-
-
-#if UNITY_EDITOR
-
-            private static Color[] _srcBmp;
-            private static Color[] _srcSm;
-            private static Color[] _srcAmbient;
-            private static Color[] _dst;
-
-            private static int _width;
-            private static int _height;
-
-            private static int IndexFrom(int x, int y)
-            {
-
-                x %= _width;
-                if (x < 0) x += _width;
-                y %= _height;
-                if (y < 0) y += _height;
-
-                return y * _width + x;
-            }
-
-            private static Texture2D NormalMapFrom(float strength, Texture2D bump, Texture2D normalReady, Texture2D ambient, string name, Texture2D Result)
-            {
-                var reference = bump ? bump : normalReady;
-
-                if (!reference)
-                {
-                    Debug.Log("No Base textures");
-                    return null;
-                }
-
-                _width = reference.width;
-                _height = reference.height;
-
-                if (bump)
-                {
-                    var importer = bump.GetTextureImporter_Editor();
-                    var needReimport = importer.WasNotReadable_Editor();
-                    needReimport |= importer.WasNotSingleChanel_Editor();
-                    if (needReimport) importer.SaveAndReimport();
-                }
-
-                if (normalReady)
-                {
-                    var importer = normalReady.GetTextureImporter_Editor();
-                    var needReimport = importer.WasNotReadable_Editor();
-                    needReimport |= importer.WasWrongIsColor_Editor(false);
-                    needReimport |= importer.WasMarkedAsNormal_Editor();
-
-                    if (needReimport)
-                        importer.SaveAndReimport();
-                }
-
-                if (ambient)
-                {
-                    var importer = ambient.GetTextureImporter_Editor();
-                    var needReimport = importer.WasNotReadable_Editor()
-                     | importer.WasWrongIsColor_Editor(false)
-                     | importer.WasNotSingleChanel_Editor();
-
-                    if (needReimport)
-                        importer.SaveAndReimport();
-                }
-
-                try
-                {
-                    _srcBmp = normalReady ? normalReady.GetPixels(_width, _height) : bump.GetPixels();
-                  
-                    _dst = new Color[_height * _width];
-                }
-                catch (UnityException e)
-                {
-                    Debug.Log("couldn't read one of the textures for  " + bump.name + " " + e);
-                    return null;
-                }
-
-
-                for (var by = 0; by < _height; by++)
-                    for (var bx = 0; bx < _width; bx++)
-                    {
-                        var dstIndex = IndexFrom(bx, by);
-                        Color destColor = Color.white;
-
-                        if (normalReady)
-                        {
-                            destColor.r = (_srcBmp[dstIndex].r - 0.5f) * strength + 0.5f;
-                            destColor.g = (_srcBmp[dstIndex].g - 0.5f) * strength + 0.5f;
-                        }
-                        else
-                        {
-                            var xLeft = _srcBmp[IndexFrom(bx - 1, by)].a;
-                            var xRight = _srcBmp[IndexFrom(bx + 1, by)].a;
-                            var yUp = _srcBmp[IndexFrom(bx, by - 1)].a;
-                            var yDown = _srcBmp[IndexFrom(bx, by + 1)].a;
-
-                            var xDelta = (-xRight + xLeft) * strength;
-                            var yDelta = (-yDown + yUp) * strength;
-
-                            destColor.r = xDelta * Mathf.Abs(xDelta) + 0.5f;
-                            destColor.g = yDelta * Mathf.Abs(yDelta) + 0.5f;
-                        }
-
-                        //destColor.b = _srcSm[dstIndex].a;
-                        //destColor.a = _srcAmbient[dstIndex].a;
-
-                        _dst[dstIndex] = destColor;
-                    }
-
-                if (bump)
-                {
-                    _srcSm = bump.GetPixels(_width, _height);
-
-                    for (var by = 0; by < _height; by++)
-                        for (var bx = 0; bx < _width; bx++)
-                        {
-                            var dstIndex = IndexFrom(bx, by);
-
-                            _dst[dstIndex].b = _srcSm[dstIndex].a;
-                        }
-                }
-
-                if (ambient) 
-                {
-                    _srcAmbient = ambient.GetPixels(_width, _height);
-
-                    for (var by = 0; by < _height; by++)
-                        for (var bx = 0; bx < _width; bx++)
-                        {
-                            var dstIndex = IndexFrom(bx, by);
-
-                            _dst[dstIndex].a = _srcAmbient[dstIndex].a;
-                        }
-                }
-              
-                if ((!Result) || (Result.width != _width) || (Result.height != _height))
-                    Result = QcUnity.CreatePngSameDirectory(reference, name + "_QcMask");
-
-                var resImp = Result.GetTextureImporter_Editor();
-                if (resImp.WasClamped_Editor()
-                     | resImp.WasWrongIsColor_Editor(false)
-                     | resImp.WasNotReadable_Editor()
-                     | resImp.HadNoMipmaps_Editor())
-                    resImp.SaveAndReimport();
-
-#pragma warning disable UNT0017 // SetPixels invocation is slow
-                Result.SetPixels(_dst);
-#pragma warning restore UNT0017 // SetPixels invocation is slow
-                Result.Apply();
-                QcUnity.SaveChangesToPixels(Result);
-
-                return Result;
-            }
-
-            private static Texture2D GlossToAlpha(Texture2D gloss, Texture2D diffuse, string newName)
-            {
-
-                if (!gloss)
-                {
-                    Debug.Log("No bump texture");
-                    return null;
-                }
-
-                var ti = gloss.GetTextureImporter_Editor();
-                var needReimport = ti.WasNotSingleChanel_Editor();
-                needReimport |= ti.WasNotReadable_Editor();
-                if (needReimport) ti.SaveAndReimport();
-
-
-                ti = diffuse.GetTextureImporter_Editor();
-                needReimport = ti.WasWrongAlphaIsTransparency_Editor();
-                needReimport |= ti.WasNotReadable_Editor();
-                if (needReimport) ti.SaveAndReimport();
-
-                var product = QcUnity.CreatePngSameDirectory(diffuse, newName + "_COLOR");
-
-                var importer = product.GetTextureImporter_Editor();
-                needReimport = importer.WasNotReadable_Editor();
-                needReimport |= importer.WasClamped_Editor();
-                needReimport |= importer.HadNoMipmaps_Editor();
-                if (needReimport)
-                    importer.SaveAndReimport();
-
-
-                _width = gloss.width;
-                _height = gloss.height;
-                Color32[] dstColor;
-
-                try
-                {
-                    dstColor = diffuse.GetPixels32();
-                    _srcBmp = gloss.GetPixels(diffuse.width, diffuse.height);
-                }
-                catch (UnityException e)
-                {
-                    Debug.Log("couldn't read one of the textures for  " + gloss.name + " " + e);
-                    return null;
-                }
-
-
-                for (var by = 0; by < _height; by++)
-                {
-                    for (var bx = 0; bx < _width; bx++)
-                    {
-                        var dstIndex = IndexFrom(bx, by);
-                        var col = dstColor[dstIndex];
-                        col.a = (byte)(_srcBmp[dstIndex].a * 255);
-                        dstColor[dstIndex] = col;
-                    }
-                }
-
-                product.SetPixels32(dstColor);
-                product.Apply();
-                QcUnity.SaveChangesToPixels(product);
-
-                return product;
-            }
-#endif
-
-            #endregion
-
-        }
     }
 
 

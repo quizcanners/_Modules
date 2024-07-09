@@ -182,7 +182,7 @@
 				
 					col.rgb = col.rgb*alpha + fogColor.rgb*deAlpha;
 
-					BleedAndBrightness(col, 1, v);
+					//BleedAndBrightness(col, 1, v);
 
 					col.a = 1;
 			

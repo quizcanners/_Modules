@@ -127,7 +127,7 @@ Shader "Quiz cAnners/UI/Effects/Sdf Shape"{
 				return OUT;
 			}
 
-			float4 frag(v2f o) : SV_Target {
+			float4 frag(v2f o) : SV_Target{
 
 				float mask = tex2Dlod(_MainTex,float4( o.texcoord,0,0)).r;
 				
@@ -165,6 +165,7 @@ Shader "Quiz cAnners/UI/Effects/Sdf Shape"{
 				
 				color.rgb *= tex.rgb;
 
+				
 
 				return color;
 			}

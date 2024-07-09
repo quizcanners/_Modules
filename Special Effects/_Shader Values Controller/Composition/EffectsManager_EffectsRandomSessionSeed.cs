@@ -4,15 +4,15 @@ using UnityEngine;
 
 namespace QuizCanners.SpecialEffects
 {
-    public partial class Singleton_SpecialEffectShaders
+    public static partial class Effects
     {
         [System.Serializable]
-        public class EffectsRandomSessionSeedManager : IPEGI, IPEGI_ListInspect
+        public class RandomSessionSeedManager : IPEGI, IPEGI_ListInspect
         {
             [SerializeField] private bool _enabled = true;
             [SerializeField] private float _min = -1;
             [SerializeField] private float _max = 1;
-            readonly ShaderProperty.VectorValue RANDOM_SESSION_VALUES = new ShaderProperty.VectorValue("qc_RND_SEEDS");
+            readonly ShaderProperty.VectorValue RANDOM_SESSION_VALUES = new("qc_RND_SEEDS");
 
             public void Regenerate()
             {
@@ -27,7 +27,7 @@ namespace QuizCanners.SpecialEffects
                 Regenerate();
             }
 
-            public void Inspect()
+            void IPEGI.Inspect()
             {
                 var change = pegi.ChangeTrackStart();
 

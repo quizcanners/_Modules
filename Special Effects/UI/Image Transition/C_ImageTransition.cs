@@ -86,7 +86,7 @@ namespace QuizCanners.SpecialEffects
 
         private void Update() 
         {
-            Transition = LerpUtils.LerpBySpeed(Transition, 1, _transitionSpeed * (nextTarget ? 3f : 1f), unscaledTime: true);
+            Transition = QcLerp.LerpBySpeed_Unscaled(Transition, 1, _transitionSpeed * (nextTarget ? 3f : 1f));
             if (Transition == 1) 
             {
                 if (nextTarget) 
@@ -107,7 +107,7 @@ namespace QuizCanners.SpecialEffects
         }
 
         #region Inspector
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             pegi.Nl();
 

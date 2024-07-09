@@ -5,7 +5,7 @@ Shader "Quiz cAnners/UI/Blick"{
 
 	//	_BumpMap("Bump Map", 2D) = "bump" {}
 
-		_Color("Tint", Color) = (1,1,1,1)
+		[HDR] _Color("Tint", Color) = (1,1,1,1)
 
 		[KeywordEnum(ScreenSpace, UvSpace)]	SPACE ("Coordinates", Float) = 0
 

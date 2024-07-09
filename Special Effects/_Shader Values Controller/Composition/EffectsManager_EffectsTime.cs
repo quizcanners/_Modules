@@ -5,22 +5,22 @@ using static QuizCanners.Utils.ShaderProperty;
 
 namespace QuizCanners.SpecialEffects
 {
-    partial class Singleton_SpecialEffectShaders
+    public static partial class Effects
     {
-        public class EffectsTimeManager : IPEGI, IPEGI_ListInspect
+        public class TimeManager : IPEGI, IPEGI_ListInspect
         {
             private const string EFFECT_TIME = "_Effect_Time";
             private const float RESET_VALUE = 30f;
 
             private static double _effectTimeScaled;
-            private readonly Gate.UnityTimeScaled _timeGate = new Gate.UnityTimeScaled();
+            private readonly Gate.UnityTimeScaled _timeGate = new(Gate.InitialValue.Uninitialized);
 
             private static double _effectTimeUnScaled;
-            private readonly Gate.UnityTimeUnScaled _timeGateUnscaled = new Gate.UnityTimeUnScaled();
+            private readonly Gate.UnityTimeUnScaled _timeGateUnscaled = new(Gate.InitialValue.Uninitialized);
 
 
-            private readonly Gate.Frame _frameGate = new Gate.Frame();
-            private readonly VectorValue _shaderTime = new VectorValue(EFFECT_TIME);
+            private readonly Gate.Frame _frameGate = new();
+            private readonly VectorValue _shaderTime = new(EFFECT_TIME);
 
             [SerializeField] private bool _enabled = true;
 
@@ -60,19 +60,20 @@ namespace QuizCanners.SpecialEffects
                         (float)_effectTimeScaled, 
                         (float)_effectTimeUnScaled,
                         (float)_effectTimeScaled % 1,
-                        (float)_effectTimeUnScaled % 1
+                        Time.frameCount % 1024
+                        //(float)_effectTimeUnScaled % 1
                         );
                 }
             }
 
-            public void OnApplicationPauseManaged(bool state)
+            public virtual void OnApplicationPauseManaged(bool state)
             {
                 _effectTimeScaled = 0;
                 _effectTimeUnScaled = 0;
             }
 
 
-            public void Inspect()
+            void IPEGI.Inspect()
             {
                 pegi.Nl();
 

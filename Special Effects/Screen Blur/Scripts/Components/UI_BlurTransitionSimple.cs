@@ -15,10 +15,10 @@ namespace QuizCanners.SpecialEffects
       
         [SerializeField] private Image _blurImage;
         [SerializeField] private Singleton_ScreenBlur.ProcessCommand mode = Singleton_ScreenBlur.ProcessCommand.Blur;
-        [SerializeField] private float _transitionSpeed = 6f;
+        [SerializeField] private float _transitionSpeed = 3f;
 
-        private readonly ShaderProperty.MaterialToggle FADE_TO_CENTER = new ShaderProperty.MaterialToggle("FADE_TO_CENTER");
-        private readonly ShaderProperty.VectorValue MOUSE_DOWN_POSITION = new ShaderProperty.VectorValue("_qcPp_MousePosition");
+        private readonly ShaderProperty.MaterialToggle FADE_TO_CENTER = new("_fadeToCenter", "FADE_TO_CENTER");
+        private readonly ShaderProperty.VectorValue MOUSE_DOWN_POSITION = new("_qcPp_MousePosition");
 
         private bool skipFirst;
 
@@ -39,7 +39,7 @@ namespace QuizCanners.SpecialEffects
 
         public IDisposable SetObscure(Action onObscured, Singleton_ScreenBlur.ProcessCommand transitionMode, bool updateBackground = false)
         {
-            Singleton.Try<Singleton_ScreenBlur>(x => x.RequestUpdate(onFirstRendered: () =>
+            Singleton.Try<Singleton_ScreenBlur>(onFound: x => x.RequestUpdate(onFirstRendered: () =>
             {
                 ObscureInternal();
                 try
@@ -49,7 +49,13 @@ namespace QuizCanners.SpecialEffects
                 {
                     Debug.LogException(ex);
                 }
-            }, afterScreenGrab: transitionMode, updateBackground: updateBackground));
+            }, afterScreenGrab: transitionMode, updateBackground: updateBackground), onFailed: ()=> 
+            {
+
+                QcLog.ChillLogger.LogErrorOnce("{0} was ot found.".F(nameof(Singleton_ScreenBlur)), key: "NoBlForSB");
+
+                onObscured?.Invoke();
+            });
 
             return QcSharp.DisposableAction(()=> Reveal(transitionMode: transitionMode));
         }
@@ -80,6 +86,9 @@ namespace QuizCanners.SpecialEffects
         {
             Singleton.Try<Singleton_ScreenBlur>(s => s.RequestUpdate(onFirstRendered: () =>
             {
+                if (!this)
+                    return;
+
                 ObscureInternal();
                 try
                 {
@@ -147,7 +156,7 @@ namespace QuizCanners.SpecialEffects
             }
         }
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             pegi.Nl();
             pegi.Edit_IfNull(ref _blurImage, gameObject).Nl();
@@ -156,11 +165,14 @@ namespace QuizCanners.SpecialEffects
 
             "Transition mode".PegiLabel(140).Edit_Enum(ref mode).Nl();
 
-            if ("Transition + BG".PegiLabel().Click())
-                Transition(null, updateBackground: true);
+            if (Application.isPlaying)
+            {
+                if ("Transition + BG".PegiLabel().Click())
+                    Transition(null, updateBackground: true);
 
-            if ("Transition".PegiLabel().Click())
-                Transition(null, updateBackground: false);
+                if ("Transition".PegiLabel().Click())
+                    Transition(null, updateBackground: false);
+            }
         }
 
         protected virtual void Reset()

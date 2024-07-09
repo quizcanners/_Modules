@@ -108,7 +108,8 @@ namespace QuizCanners.SpecialEffects
         #endregion
 
         #region Inspector
-        private int inspectedProperty = -1;
+        //private int inspectedProperty = -1;
+        private readonly pegi.EnterExitContext context = new();
         public static Singleton_SceneLighting inspected;
 
         public override void Inspect()
@@ -116,101 +117,106 @@ namespace QuizCanners.SpecialEffects
             
             inspected = this;
 
-            if (Application.isPlaying)
+
+            using (context.StartContext())
             {
-                if (enabled && "Pause".PegiLabel().Click())
-                    enabled = false;
 
-                if (!enabled && "Control Light".PegiLabel().Click())
-                    enabled = true;
-            }
-
-            pegi.Nl();
-
-            var changed = pegi.ChangeTrackStart();
-
-            bool notInspectingProperty = inspectedProperty == -1;
-
-            "Bleed".PegiLabel(60).Edit(ref colorBleed.targetValue, 0f, 0.3f).Nl();
-
-            "Brightness".PegiLabel(90).Edit(ref brightness.targetValue, 0f, 8f).Nl();
-
-            shadowDistance.Enter_Inspect_AsList(ref inspectedProperty, 3).Nl();
-
-            bool fog = RenderSettings.fog;
-
-            if (notInspectingProperty && "Fog".PegiLabel().ToggleIcon(ref fog, true))
-                RenderSettings.fog = fog;
-
-            if (fog)
-            {
-                var fogMode = RenderSettings.fogMode;
-
-                if (notInspectingProperty)
+                if (Application.isPlaying)
                 {
-                    "Fog Color".PegiLabel(60).Edit(ref fogColor.targetValue).Nl();
+                    if (enabled && "Pause".PegiLabel().Click())
+                        enabled = false;
 
-                    if ("Fog Mode".PegiLabel(60).Edit_Enum(ref fogMode).Nl())
-                        RenderSettings.fogMode = fogMode;
+                    if (!enabled && "Control Light".PegiLabel().Click())
+                        enabled = true;
                 }
 
-                if (fogMode == FogMode.Linear)
-                    fogDistance.Enter_Inspect_AsList(ref inspectedProperty, 4).Nl();
-                else
-                    fogDensity.Enter_Inspect_AsList(ref inspectedProperty, 5).Nl();
-            }
-
-            if (notInspectingProperty)
-                "Sky Color".PegiLabel(60).Edit(ref skyColor.targetValue).Nl();
-
-            pegi.Nl();
-
-            "Main Directional Light".PegiLabel().Edit(ref _mainDirectionalLight).Nl();
-
-            if (_mainDirectionalLight)
-            {
                 pegi.Nl();
-                mainLightRotation.Nested_Inspect().Nl();
 
-                "Light Intensity".PegiLabel().Edit(ref mainLightIntensity.targetValue).Nl();
-                "Light Color".PegiLabel().Edit(ref mainLightColor.targetValue).Nl();
-            }
+                var changed = pegi.ChangeTrackStart();
 
-            pegi.Nl();
+             //   bool notInspectingProperty = inspectedProperty == -1;
 
-            if (Application.isPlaying)
-            {
-                if (ld.MinPortion < 1)
+                "Bleed".PegiLabel(60).Edit(ref colorBleed.targetValue, 0f, 0.3f).Nl();
+
+                "Brightness".PegiLabel(90).Edit(ref brightness.targetValue, 0f, 8f).Nl();
+
+                shadowDistance.Enter_Inspect_AsList().Nl();
+
+                bool fog = RenderSettings.fog;
+
+                if (!context.IsAnyEntered && "Fog".PegiLabel().ToggleIcon(ref fog, true))
+                    RenderSettings.fog = fog;
+
+                if (fog)
                 {
-                    "Lerping {0}".F(ld.dominantParameter).PegiLabel().Write();
-                    pegi.FullWindow.DocumentationClickOpen(() => "Each parameter has a transition speed. THis text shows which parameter sets speed for others (the slowest one). " +
-                                                               "If Transition is too slow, increase this parameter's speed");
+                    var fogMode = RenderSettings.fogMode;
+
+                    if (!context.IsAnyEntered)
+                    {
+                        "Fog Color".PegiLabel(60).Edit(ref fogColor.targetValue).Nl();
+
+                        if ("Fog Mode".PegiLabel(60).Edit_Enum(ref fogMode).Nl())
+                            RenderSettings.fogMode = fogMode;
+                    }
+
+                    if (fogMode == FogMode.Linear)
+                        fogDistance.Enter_Inspect_AsList().Nl();
+                    else
+                        fogDensity.Enter_Inspect_AsList().Nl();
+                }
+
+                if (!context.IsAnyEntered)
+                    "Sky Color".PegiLabel(60).Edit(ref skyColor.targetValue).Nl();
+
+                pegi.Nl();
+
+                "Main Directional Light".PegiLabel().Edit(ref _mainDirectionalLight).Nl();
+
+                if (_mainDirectionalLight)
+                {
                     pegi.Nl();
-                }
-            }
+                    mainLightRotation.Nested_Inspect().Nl();
 
-            if (changed)
-            {
-                Update();
-#if UNITY_EDITOR
-                if (Application.isPlaying == false)
+                    "Light Intensity".PegiLabel().Edit(ref mainLightIntensity.targetValue).Nl();
+                    "Light Color".PegiLabel().Edit(ref mainLightColor.targetValue).Nl();
+                }
+
+                pegi.Nl();
+
+                if (Application.isPlaying)
                 {
-                    UnityEditor.SceneView.RepaintAll();
-                    UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+                    if (ld.MinPortion < 1)
+                    {
+                        "Lerping {0}".F(ld.dominantParameter).PegiLabel().Write();
+                        pegi.FullWindow.DocumentationClickOpen(() => "Each parameter has a transition speed. THis text shows which parameter sets speed for others (the slowest one). " +
+                                                                   "If Transition is too slow, increase this parameter's speed");
+                        pegi.Nl();
+                    }
                 }
+
+                if (changed)
+                {
+                    Update();
+#if UNITY_EDITOR
+                    if (Application.isPlaying == false)
+                    {
+                        pegi.Handle.SceneSetDirty(this);
+                        UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+                    }
 #endif
+                }
+
+                if (!_configs)
+                    pegi.Edit(ref _configs);
+                else
+                    _configs.Nested_Inspect();
+
+                if (changed)
+                    QcUnity.RepaintViews(this);
+
+                if (changed)
+                    UpdateShader();
             }
-
-            if (!_configs)
-                pegi.Edit(ref _configs);
-            else
-                _configs.Nested_Inspect();
-
-            if (changed)
-                QcUnity.RepaintViews();
-
-            if (changed)
-                UpdateShader();
 
             inspected = null;
         }
@@ -235,9 +241,7 @@ namespace QuizCanners.SpecialEffects
         public void Portion(LerpData ld)
         {
 
-            if (lerpsList == null)
-            {
-                lerpsList = new List<LinkedLerp.BaseLerp>
+            lerpsList ??= new List<LinkedLerp.BaseLerp>
                     {
                         shadowStrength,
                         shadowDistance,
@@ -248,7 +252,6 @@ namespace QuizCanners.SpecialEffects
                         colorBleed,
                         brightness
                     };
-            }
 
             lerpsList.Portion(ld);
 

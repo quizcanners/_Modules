@@ -15,6 +15,9 @@ Shader "Quiz cAnners/UI/Blurred Screens Wih Bump"
 
         _ColorMask("Color Mask", Float) = 15
 
+        [KeywordEnum(SCREEN_SHOT, BLURRED_SCREEN, BACKGROUND)] _TARGET("Screen Grab Data", Float) = 0
+
+
         [Toggle(_USE_SCREEN_SPACE)] _useUv("Use Screen Space", Float) = 0
         [Toggle(TOUCH_REACTION)] _ReactOnTouch("React To Touch", Float) = 0
         [Toggle(TOUCH_SHOW)] _ShowOnTouch("Show Only on touch", Float) = 0
@@ -56,6 +59,8 @@ Shader "Quiz cAnners/UI/Blurred Screens Wih Bump"
             #pragma shader_feature_local __ _USE_SCREEN_SPACE
             #pragma shader_feature_local ___ TOUCH_REACTION
             #pragma shader_feature_local ___ TOUCH_SHOW
+            #pragma shader_feature_local _TARGET_SCREEN_SHOT  _TARGET_BLURRED_SCREEN   _TARGET_BACKGROUND
+
 
             #include "UnityCG.cginc"
             #include "UnityUI.cginc"
@@ -88,7 +93,15 @@ Shader "Quiz cAnners/UI/Blurred Screens Wih Bump"
             float4 _BumpMap_TexelSize;
 
             float4 _Effect_Time;
+
+#if _TARGET_SCREEN_SHOT  
+            sampler2D _qcPp_Global_Screen_Read;
+#elif _TARGET_BLURRED_SCREEN
             sampler2D _qcPp_Global_Screen_Effect;
+#elif _TARGET_BACKGROUND
+            sampler2D _qcPp_Global_Screen_Background;
+#endif
+
             fixed4 _Color;
             float4 _qcPp_MousePosition;
 
@@ -118,7 +131,7 @@ Shader "Quiz cAnners/UI/Blurred Screens Wih Bump"
             }
 
 
-            fixed4 frag(v2f IN) : SV_Target {
+            float4 frag(v2f IN) : SV_Target {
 
                 float2 screenPos = IN.screenPos.xy / IN.screenPos.w;
                 float2 bumpUv;
@@ -143,17 +156,21 @@ Shader "Quiz cAnners/UI/Blurred Screens Wih Bump"
                     fromMouse.x *= _qcPp_MousePosition.w;
                     float lenM = length(fromMouse);// *4;
 
+               
                     float bumpAlpha = //alpha * saturate((0.99 - (lenM) * 0.9) * _qcPp_MousePosition.z);
 
-                    alpha * smoothstep(0.2, 0, lenM + sin(lenM * 50 - _Effect_Time.x * 50) * 0.02) * _qcPp_MousePosition.z;
+                        alpha * smoothstep(0.2, 0, lenM + sin(lenM * 50 - _Effect_Time.y * 50) * 0.02);// *_qcPp_MousePosition.z;
 
-                    tnormal.rg *= bumpAlpha * bumpAlpha;
+                    tnormal.rg *= 0.5 + bumpAlpha * bumpAlpha;
 
                         #if TOUCH_SHOW
                             alpha = bumpAlpha;
                         #endif
 
+                           // float dott = dot(-normalize(fromMouse), normalize(tnormal.rg));
 
+
+                           /// IN.color = lerp(IN.color, 1, (0.1 + dott) * 0.05 * bumpAlpha * bumpAlpha);
 
                 #endif
 
@@ -163,7 +180,17 @@ Shader "Quiz cAnners/UI/Blurred Screens Wih Bump"
                 float gyroid = dot(sin(p), cos(p.zxy));
                 screenPos += (gyroid) * 0.002;
 
-                fixed4 color = tex2D(_qcPp_Global_Screen_Effect, float4(screenPos, 0, 0));
+
+                float4 color = tex2D(
+#if _TARGET_SCREEN_SHOT  
+                _qcPp_Global_Screen_Read
+#elif _TARGET_BLURRED_SCREEN
+                _qcPp_Global_Screen_Effect
+#elif _TARGET_BACKGROUND
+                _qcPp_Global_Screen_Background
+#endif
+
+               , float4(screenPos, 0, 0));
 
                // color.a = smoothstep((lenM) * 0.4, 1, IN.color.a);
 

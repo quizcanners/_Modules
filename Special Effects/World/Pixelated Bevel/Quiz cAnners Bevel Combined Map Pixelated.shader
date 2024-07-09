@@ -139,7 +139,7 @@
 					float ambient = bumpMap.a * smoothstep(0,1, length(i.vcol.rgb));
 					float smoothness =  bumpMap.b ;
 					Combined_Light(col, ambient, smoothness, normal, i.viewDir.xyz, shadow);
-					BleedAndBrightness(col, 1, i.texcoord.xy);
+					//BleedAndBrightness(col, 1, i.texcoord.xy);
 				
 					return saturate(col);
 

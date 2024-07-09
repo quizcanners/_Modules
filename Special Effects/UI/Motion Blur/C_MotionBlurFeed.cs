@@ -93,7 +93,7 @@ namespace QuizCanners.SpecialEffects
            // UIVertex vertex = UIVertex.simpleVert;
         }
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             pegi.Nl();
 

@@ -13,7 +13,7 @@ namespace QuizCanners.SpecialEffects
         [SerializeField] private Camera _mainCam;
 
         private readonly ShaderProperty.VectorValue _sunDirectionProperty = new ShaderProperty.VectorValue("_SunDirection");
-        private readonly ShaderProperty.ColorFloat4Value _directionalColorProperty = new ShaderProperty.ColorFloat4Value("_Directional");
+        private readonly ShaderProperty.ColorValue _directionalColorProperty = new ShaderProperty.ColorValue("_Directional");
         private readonly ShaderProperty.VectorValue _offsetProperty = new ShaderProperty.VectorValue("_Off");
 
         private void FindComponents()
@@ -74,7 +74,7 @@ namespace QuizCanners.SpecialEffects
         #region Inspector
         private int _inspectedStuff = -1;
 
-        public void Inspect()
+        void IPEGI.Inspect()
         {
             if (_inspectedStuff == -1)
             {

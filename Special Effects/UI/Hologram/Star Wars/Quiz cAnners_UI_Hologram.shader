@@ -12,7 +12,7 @@ Shader "Quiz cAnners/UI/Hologram"
 		_StencilReadMask("Stencil Read Mask", Float) = 255
 
 		_ProjTexPos("Screen Space Projector Position", Vector) = (0,0,0,0)
-		_ColorMask("Color Mask", Float) = 15
+		//_ColorMask("Color Mask", Float) = 15
 		_Aboration("Chromatic Aboration", Float) = 1
 
 		[Toggle(IS_SPINE)] _IsSpine("Show Transparent Areas", Float) = 0
@@ -43,7 +43,7 @@ Shader "Quiz cAnners/UI/Hologram"
 		ZWrite Off
 		ZTest[unity_GUIZTestMode]
 		Blend One OneMinusSrcAlpha
-		ColorMask[_ColorMask]
+		//ColorMask[_ColorMask]
 
 		Pass
 		{
@@ -79,6 +79,7 @@ Shader "Quiz cAnners/UI/Hologram"
 
 			sampler2D _MainTex;
 			sampler2D _Global_Noise_Lookup;
+			float4 _MainTex_TexelSize;
 			float4 _Color;
 			float4 _TextureSampleAdd;
 			float4 _ClipRect;
@@ -111,7 +112,7 @@ Shader "Quiz cAnners/UI/Hologram"
 				float4 noise = tex2Dlod(_Global_Noise_Lookup, float4(IN.screenPos.xy*(1.1 + _SinTime.w) + float2(_SinTime.w, _CosTime.w) * 32, 0, 0));
 				noise.rgb -= 0.5;
 
-				const float off = 0.003 * _Aboration *  (1 + noise.b* _SinTime.z);
+				const float off = _MainTex_TexelSize.xy * _Aboration *  (1 + noise.b* _SinTime.z);
 
 				float4 color = tex2Dlod(_MainTex, float4(IN.texcoord, 0, 0));// *IN.color;
 
@@ -119,9 +120,9 @@ Shader "Quiz cAnners/UI/Hologram"
 
 				float4 colorB = tex2Dlod(_MainTex, float4(IN.texcoord + float2(off, 0), 0, noise.g * 4));// *IN.color;
 
-				color.r = colorR.r;
+				color.r = colorR.r * colorR.a;
 
-				color.b = colorB.b;
+				color.b = colorB.b * colorB.a;
 
 				float2 linesUV = IN.screenPos.xy;
 
@@ -132,25 +133,23 @@ Shader "Quiz cAnners/UI/Hologram"
 
 				lines *= lines;
 
-				float light = 0.4;
+			//	float light = 0.4;
 
 
 				color.rgb += color.rgb * noise.rgb * 0.2;
 
-				light *= light * 16;
+				//light *= light * 16;
 
-				color.rgb = color.rgb * (1 + lines)
-					+ 
-					length(color.rgb)*IN.color.rgb  * 0.3
-					;
+				color.rgb = color.rgb * (1 + lines) * IN.color.rgb + length(color.rgb) * 0.3;
+					
 
-				color *=   min(1,light * IN.color.a * 0.3);
+				color *= IN.color.a; // min(1, light* IN.color.a * 0.3);
 
 				float3 mix = color.gbr*color.brg*color.a;
 
 				color.rgb += mix * IN.color.rgb * 0.5;
 
-				color.a += color.a * (1 - color.a);
+			//	color.a += color.a * (1 - color.a);
 
 				#if !IS_SPINE
 					color.rgb *= color.a;

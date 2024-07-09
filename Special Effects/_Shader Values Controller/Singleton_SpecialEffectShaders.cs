@@ -7,15 +7,17 @@ namespace QuizCanners.SpecialEffects
 
     [DisallowMultipleComponent]
     [ExecuteAlways]
-    public partial class Singleton_SpecialEffectShaders : Utils.Singleton.BehaniourBase
+    [AddComponentMenu(QcUtils.QUIZCANNERS + "/Special Effects")]
+    public partial class Singleton_SpecialEffectShaders : Singleton.BehaniourBase
     {
         public const string SO_CREATE_PATH = QcUnity.SO_CREATE_MENU + "Special Effects/";
 
-        [SerializeField] public EffectsRandomSessionSeedManager RandomSeed = new EffectsRandomSessionSeedManager();
-        [SerializeField] public EffectsTimeManager EffectsTime = new EffectsTimeManager();
-        [SerializeField] public GyroscopeParallaxManager GyroscopeParallax = new GyroscopeParallaxManager();
-        [SerializeField] public EffectsMousePositionManager MousePosition = new EffectsMousePositionManager();
-        [SerializeField] public NoiseTextureManager NoiseTexture = new NoiseTextureManager();
+        public Effects.RandomSessionSeedManager RandomSeed = new();
+        public Effects.TimeManager EffectsTime = new();
+        public Effects.GyroscopeParallaxManager GyroscopeParallax = new();
+        public Effects.MousePositionManager MousePosition = new();
+        public Effects.NoiseTextureManager NoiseTexture = new();
+        public Effects.AmbientOcclusionManager AmbientOcclusion = new();
 
         #region Feeding Events
 
@@ -29,6 +31,11 @@ namespace QuizCanners.SpecialEffects
             EffectsTime.ManagedLateUpdate();
             GyroscopeParallax.ManagedLateUpdate();
             MousePosition.ManagedLateUpdate();
+        }
+
+        private void Update()
+        {
+            AmbientOcclusion.ManagedUpdate();
         }
 
         private void OnApplicationPause(bool state)
@@ -61,14 +68,13 @@ namespace QuizCanners.SpecialEffects
             }
         }
 
-
         #endregion
 
         #region Inspector
 
         public override string InspectedCategory => Utils.Singleton.Categories.RENDERING;
 
-        [SerializeField] private pegi.EnterExitContext enterExitContext = new pegi.EnterExitContext();
+        [SerializeField] private pegi.EnterExitContext enterExitContext = new();
 
         public override void Inspect()
         {
@@ -81,6 +87,7 @@ namespace QuizCanners.SpecialEffects
                 GyroscopeParallax.Enter_Inspect_AsList().Nl();
                 MousePosition.Enter_Inspect_AsList().Nl();
                 NoiseTexture.Enter_Inspect_AsList().Nl();
+                AmbientOcclusion.Enter_Inspect_AsList().Nl();
             }
         }
         #endregion
