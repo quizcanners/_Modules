@@ -45,6 +45,8 @@ namespace QuizCanners.SpecialEffects
 
         protected override void OnAfterEnable()
         {
+            base.OnAfterEnable();
+
             RandomSeed.ManagedOnEnable();
             GyroscopeParallax.ManagedOnEnable();
             MousePosition.ManagedOnEnable();
