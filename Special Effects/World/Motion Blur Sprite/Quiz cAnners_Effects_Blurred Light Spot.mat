@@ -30,8 +30,8 @@ Material:
     m_Ints: []
     m_Floats:
     - _Angle: 1
-    - _Force: 0.008
-    - _Visibility: 1
+    - _Force: 1
+    - _Visibility: 0
     m_Colors:
     - _Color: {r: 1, g: 0.7339251, b: 0, a: 1}
   m_BuildTextureStacks: []

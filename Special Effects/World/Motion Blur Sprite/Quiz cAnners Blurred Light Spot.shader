@@ -22,7 +22,8 @@
 
 		Cull Off
 		ZWrite Off
-		Blend SrcAlpha OneMinusSrcAlpha
+		ZTest Off
+		Blend SrcAlpha One //MinusSrcAlpha
 
 		SubShader
 		{
@@ -64,7 +65,7 @@
 					o.pos = UnityObjectToClipPos(v.vertex);
 					
 					o.screenPos = ComputeScreenPos(o.pos); 
-
+						COMPUTE_EYEDEPTH(o.screenPos.z);
 					o.texcoordOriginal =  v.texcoord.xy;
 
 					o.texcoord = v.texcoord.xy - 0.5;
@@ -118,26 +119,55 @@
 
 				//	float diff = length(fwidth(uv));
 
-					float alpha = sizeOnScreen /(dist * 2 + 0.001);
+						float alpha = sizeOnScreen;
+
+						float distToCam = length(_WorldSpaceCameraPos - i.worldPos.xyz);
+
+					#if qc_LAYARED_FOG
+						float4 foggy = SampleLayeredFog(distToCam, screenUV);
+
+						alpha /= (dist * 2 + 0.001);
+					#else
+						alpha /= (dist * 2  + 0.001);
+					#endif
+
+					//return alpha;
 				
-					alpha *= smoothstep(0.5, 0.3, length(i.texcoordOriginal-0.5));
+					float offUVLen = length(i.texcoordOriginal-0.5);
+				
+					alpha *= smoothstep(0.5, 0.3, offUVLen);
 
 
 					float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, screenUV);
 					float sceneZ = LinearEyeDepth(UNITY_SAMPLE_DEPTH(depth));
 					float partZ = i.screenPos.z;
-					float fade = smoothstep(0, 1, 0.2 * (sceneZ - partZ));
+					float fade = smoothstep(0, 1, (sceneZ - partZ));
+
+					float contact = smoothstep(distToCam * 0.03, 0, abs(sceneZ - partZ));
+
+					float contactLight = contact * smoothstep(0.5,0,offUVLen);
 
 					alpha *= fade;
 
 					float4 col = _Color * alpha * 10 / (10 + length(blurVector));
 					col.a = min(_Visibility, col.a);
 
-					float3 mix = col.gbr + col.brg;
-					col.rgb += mix * mix * 0.05;
+					col += _Color * _Visibility * contactLight;
 
 
-					ApplyLayeredFog_Transparent(col,screenUV, i.worldPos.xyz);
+
+					#if qc_LAYARED_FOG
+
+						col.rgb = lerp(col.rgb, col.rgb*foggy.rgb, foggy.a);
+
+					#else 
+					
+						float3 mix = col.gbr + col.brg;
+						col.rgb += mix * mix * 0.05;
+
+					#endif
+
+					//ApplyLayeredFog_Transparent(col,screenUV, i.worldPos.xyz);
 
 					return col;
 

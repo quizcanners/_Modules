@@ -102,7 +102,7 @@ namespace QuizCanners.SpecialEffects
 
             if (_autoscale)
             {
-                transform.localScale = 0.03f * Vector3.Distance(transform.position, inst.transform.position) * Vector3.one;
+                transform.localScale = 0.08f * Vector3.Distance(transform.position, inst.transform.position) * Vector3.one;
             }
 
             if (_trackMotion)

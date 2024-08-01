@@ -6,6 +6,7 @@ namespace QuizCanners.AliveWorld
     using System.Collections.Generic;
     using System;
     using QuizCanners.Utils;
+    using UnityEditor.SearchService;
 
     [ExecuteAlways]
     [AddComponentMenu(Alive.ADD_COMPONENT_MENU + "/Enemy Instance")]
@@ -65,7 +66,9 @@ namespace QuizCanners.AliveWorld
                 pegi.Nl();
             }
 
-            "Config".PegiLabel().Edit_Inspect(ref config).Nl();
+            "Config".PegiLabel(60).Edit_Inspect(newSoName: "Spawner config", addSceneName: true, ref config);
+
+            pegi.Nl();
         }
 
         public void OnSceneDraw()

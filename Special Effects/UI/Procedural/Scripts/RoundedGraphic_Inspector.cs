@@ -244,13 +244,13 @@ namespace QuizCanners.SpecialEffects
                     if (mat && gotPixPerfTag)
                         _compatibleMaterials.AddIfNew(mat);
 
-                    bool showingSelection = false;
+                    //bool showingSelection = false;
 
                     var cmpCnt = _compatibleMaterials.Count;
                     if (cmpCnt > 0 && ((cmpCnt > 1) || (!_compatibleMaterials[0].Equals(mat))))
                     {
 
-                        showingSelection = true;
+                     //   showingSelection = true;
 
                         if (Select(ref mat, _compatibleMaterials, allowInsert: !mayBeDefaultMaterial))
                             material = mat;
@@ -272,15 +272,18 @@ namespace QuizCanners.SpecialEffects
                                 mayBeDefaultMaterial = false;
                         }
 
+                        /*
                         if (!showingSelection && !mayBeDefaultMaterial)
                         {
                             var n = mat.name;
                             if ("Rename Material".PegiLabel("Press Enter to finish renaming.", 120).Edit_Delayed(ref n))
                                 QcUnity.RenameAsset(mat, n);
-                        }
+                        }*/
                     }
 
-                    ChangesToken changedMaterial = Edit_Property(() => m_Material, this, fieldWidth: 60);
+                    pegi.Nl();
+
+                    ChangesToken changedMaterial = pegi.Edit(ref m_Material, this);
 
                     if (!Application.isPlaying)
                         changedMaterial |= Nested_Inspect(() => ClickDuplicate(ref mat, gameObject.name)).OnChanged(() => material = mat);
