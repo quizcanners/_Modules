@@ -10,9 +10,9 @@ namespace QuizCanners.SpecialEffects
     {
         [SerializeField] private Camera _camera;
 
-        private static C_UiCameraForEffectsManagement Instance;
+        public static C_UiCameraForEffectsManagement Instance;
 
-        public static Camera Camera => Instance && Instance._camera ? Instance._camera : Camera.main;
+        public static Camera UiCameraOrMain => Instance && Instance._camera ? Instance._camera : Camera.main;
 
         private void OnEnable()
         {
@@ -34,7 +34,7 @@ namespace QuizCanners.SpecialEffects
         }
 
 #if UNITY_EDITOR
-        private readonly ShaderProperty.Feature _isInEditor = new ShaderProperty.Feature("_qc_SCENE_RENDERING");
+        private readonly ShaderProperty.Feature _isInEditor = new("_qc_SCENE_RENDERING");
 
         void OnPreRender() => _isInEditor.Enabled = false;
         void OnPostRender() => _isInEditor.Enabled = true;

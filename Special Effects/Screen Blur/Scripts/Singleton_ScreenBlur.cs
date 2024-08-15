@@ -5,6 +5,8 @@ using UnityEngine;
 namespace QuizCanners.SpecialEffects
 {
     using Inspect;
+    using UnityEngine.NVIDIA;
+    using UnityEngine.Rendering;
     using Utils;
     using static Utils.OnDemandRenderTexture;
 
@@ -16,6 +18,7 @@ namespace QuizCanners.SpecialEffects
 
         [Header("Management Shaders:")]
         [SerializeField] protected Shader copyShader;
+        [SerializeField] protected Shader copyAndFlipShader;
         [SerializeField] protected Shader copyDownscale;
 
         [Header("Effect Shaders:")]
@@ -51,9 +54,7 @@ namespace QuizCanners.SpecialEffects
         [NonSerialized] protected List<Action> onFirstRenderList = new();
         [NonSerialized] protected LogicWrappers.Request backgroundUpdate = new();
 
-
-
-
+        private bool ScreenGrabFlipped => !Camera.main || !Camera.main.enabled;
 
         public void RequestUpdate(Action onFirstRendered = null, ProcessCommand afterScreenGrab = ProcessCommand.Blur, bool updateBackground = true)
         {
@@ -101,7 +102,10 @@ namespace QuizCanners.SpecialEffects
         private void AfterCaptured()
         {
             step = BlurStep.ReturnedFromCamera;
-            BlitInternal(SCREEN_READ_TEXTURE, SCREEN_READ_SECOND_BUFFER, copyShader);
+
+            var shader = ScreenGrabFlipped ? copyAndFlipShader : copyShader;
+
+            BlitInternal(SCREEN_READ_TEXTURE, SCREEN_READ_SECOND_BUFFER, shader);
             SCREEN_READ_TEXTURE.Version++;
             SCREEN_READ_SECOND_BUFFER.Version++;
         }
@@ -315,6 +319,8 @@ namespace QuizCanners.SpecialEffects
 
             if (Application.isPlaying)
             {
+                if (ScreenGrabFlipped)
+                    "Screen Flipped".PegiLabel().Nl();
                 EFFECT_DOUBLE_BUFFER.Nested_Inspect().Nl();
                 "Render Blur".PegiLabel().Click().Nl().OnChanged(() => EFFECT_DOUBLE_BUFFER.Blit(blurShader, andRelease: false));
             }

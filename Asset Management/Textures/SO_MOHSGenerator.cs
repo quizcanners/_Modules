@@ -10,7 +10,10 @@ namespace QuizCanners.Modules
 {
 
     [CreateAssetMenu(fileName = FILE_NAME, menuName = Utils.QcUnity.SO_CREATE_MENU_MODULES + "Textures/" + FILE_NAME)]
-    public class SO_MOHSGenerator : ScriptableObject, IPEGI
+    public class SO_MOHSGenerator : ScriptableObject
+#if UNITY_EDITOR
+        , IPEGI
+#endif
     {
         const string FILE_NAME = "MOHS Texture Set";
 

@@ -38,7 +38,7 @@ namespace QuizCanners.AliveWorld
                     return true;
                 }
 
-                public DetectionType IsPointBeingDetected(Vector3 myPosition, Vector3 forward, Vector3 pointPosition, float noise, out float detectionRate) 
+                public DetectionType IsPointInsideDetectionSector(Vector3 myPosition, Vector3 forward, Vector3 pointPosition, float noise, out float detectionRate) 
                 {
                     var diff = pointPosition - myPosition;
                     var distance = diff.magnitude;
@@ -66,11 +66,18 @@ namespace QuizCanners.AliveWorld
                     ThreadDetection01 = 1;
                 }
 
-                public bool TryDetectThreat(bool threatVisible, float duration, float detectionRate) 
+                private Gate.UnityTimeScaled _detectionUpdateTimer = new(Gate.InitialValue.Uninitialized);
+
+                public bool TryDetectThreat(bool threatVisible, float detectionRate) 
                 {
+                    float deltaTime = Mathf.Clamp((float)_detectionUpdateTimer.GetSecondsDeltaAndUpdate(), 0, 0.5f);
+
+                    if (deltaTime == 0)
+                        return false;
+
                     if (threatVisible) 
                     {
-                        ThreadDetection01 = Mathf.Min(1, ThreadDetection01 + duration * detectionRate / Prototype.DetectionDuration);
+                        ThreadDetection01 = Mathf.Min(1, ThreadDetection01 + deltaTime * detectionRate / Prototype.DetectionDuration);
 
                         if (ThreadDetection01 >= 0.99f && Activity != Activity.Combat)
                         {
@@ -83,7 +90,7 @@ namespace QuizCanners.AliveWorld
                         return Activity == Activity.Combat;
                     } else 
                     {
-                        ThreadDetection01 = Mathf.Max(0, ThreadDetection01 - duration / Prototype.AlertCooldownDuration);
+                        ThreadDetection01 = Mathf.Max(0, ThreadDetection01 - deltaTime / Prototype.AlertCooldownDuration);
 
                         if (ThreadDetection01 < 0.01f)
                         {
@@ -98,7 +105,7 @@ namespace QuizCanners.AliveWorld
                     }
                 }
 
-                public bool TryGetNewTargetPosition(out Vector3 targtPosition, NavMeshAgent agent) 
+                public bool TryGetNewTravelDestination(out Vector3 targtPosition, NavMeshAgent agent) 
                 {
                     targtPosition = Vector3.zero;
 

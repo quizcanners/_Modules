@@ -44,7 +44,7 @@ namespace QuizCanners.SpecialEffects
         {
             if (_trackMotion)
             {
-                var pos = RectTransformUtility.WorldToScreenPoint(C_UiCameraForEffectsManagement.Camera, transform.position);
+                var pos = RectTransformUtility.WorldToScreenPoint(C_UiCameraForEffectsManagement.UiCameraOrMain, transform.position);
 
                 if (previousPosition == pos)
                 {
@@ -106,7 +106,7 @@ namespace QuizCanners.SpecialEffects
 
             "Track Motion".PegiLabel().ToggleIcon(ref _trackMotion).Nl(SetAllDirty);
 
-            if (!C_UiCameraForEffectsManagement.Camera)
+            if (!C_UiCameraForEffectsManagement.UiCameraOrMain)
                 "{0} not found. Will Use Camera.main".F(nameof(C_UiCameraForEffectsManagement)).PegiLabel().Nl();
 
             if (!_trackMotion)

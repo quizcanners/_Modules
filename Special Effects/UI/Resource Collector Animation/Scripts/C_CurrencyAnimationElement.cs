@@ -43,7 +43,7 @@ namespace QuizCanners.SpecialEffects
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 rect: _parent,
                 screenPoint: _screenPoint,
-                cam: C_UiCameraForEffectsManagement.Camera,
+                cam: C_UiCameraForEffectsManagement.UiCameraOrMain,
                 localPoint: out Vector2 originPosition);
 
                 _rectTransform.anchoredPosition = originPosition;

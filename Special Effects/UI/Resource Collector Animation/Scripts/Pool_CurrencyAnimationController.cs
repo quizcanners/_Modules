@@ -226,7 +226,7 @@ namespace QuizCanners.SpecialEffects
                                 _canvas.renderMode = RenderMode.ScreenSpaceCamera;
                         }
                     }
-                    if (!C_UiCameraForEffectsManagement.Camera)
+                    if (!C_UiCameraForEffectsManagement.UiCameraOrMain)
                         "No UI Camera".PegiLabel().WriteWarning().Nl();
 
                 }
@@ -355,7 +355,7 @@ namespace QuizCanners.SpecialEffects
                             Origin = null;
                         else
                         {
-                            _lastPosition = RectTransformUtility.WorldToScreenPoint(C_UiCameraForEffectsManagement.Camera, Origin.position);
+                            _lastPosition = RectTransformUtility.WorldToScreenPoint(C_UiCameraForEffectsManagement.UiCameraOrMain, Origin.position);
                         }
                     }
 
@@ -382,7 +382,7 @@ namespace QuizCanners.SpecialEffects
                     }
                     else
                     {
-                        _lastPosition = RectTransformUtility.WorldToScreenPoint(C_UiCameraForEffectsManagement.Camera, Origin.position);
+                        _lastPosition = RectTransformUtility.WorldToScreenPoint(C_UiCameraForEffectsManagement.UiCameraOrMain, Origin.position);
                         _rectSize = Origin.rect.size;
                     }
                 }
@@ -418,7 +418,7 @@ namespace QuizCanners.SpecialEffects
                 {
                     if (Target && _positionUpdateGate.TryEnter())
                     {
-                        _lastPosition = RectTransformUtility.WorldToScreenPoint(C_UiCameraForEffectsManagement.Camera, Target.rectTransform.position);
+                        _lastPosition = RectTransformUtility.WorldToScreenPoint(C_UiCameraForEffectsManagement.UiCameraOrMain, Target.rectTransform.position);
                     }
 
                     return _lastPosition;

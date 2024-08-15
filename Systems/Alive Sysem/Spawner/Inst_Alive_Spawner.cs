@@ -6,7 +6,6 @@ namespace QuizCanners.AliveWorld
     using System.Collections.Generic;
     using System;
     using QuizCanners.Utils;
-    using UnityEditor.SearchService;
 
     [ExecuteAlways]
     [AddComponentMenu(Alive.ADD_COMPONENT_MENU + "/Enemy Instance")]
@@ -50,6 +49,22 @@ namespace QuizCanners.AliveWorld
 
         internal static Inst_Alive_Spawner inspected;
 
+        public override string ToString()
+        {
+            if (!config)
+                return "No config";
+
+            var soName = config.ToString();
+
+            if (!Application.isPlaying)
+                return soName;
+
+            if (allSpawned)
+                return "{0} Done".F(soName);
+
+
+            return "{0} {1}/{2}".F(soName, monstersSpawned, config.monstersToSpawn);
+        }
         public virtual void Inspect()
         {
             inspected = this;
